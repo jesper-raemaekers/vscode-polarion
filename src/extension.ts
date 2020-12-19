@@ -38,12 +38,9 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  vscode.workspace.onDidOpenTextDocument(event => {
-    const openEditor = vscode.window.visibleTextEditors.filter(
-      editor => editor.document.uri === event.uri
-    )[0];
-    if (openEditor) {
-      decorate(openEditor);
+  vscode.window.onDidChangeActiveTextEditor(event => {
+    if (event) {
+      decorate(event);
     }
   });
 
@@ -82,11 +79,6 @@ async function decorate(editor: vscode.TextEditor) {
   let decorationColor = getDecorateColor();
   let sourceCode = editor.document.getText();
   let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
-  // let regex = /(SCB-\d+)/
-  // if (!prefix) {
-  //   // regex = /(SCB-\d+)/ + prefix
-  //   return
-  // }
 
   let regex = "(" + prefix + "-\\d+)";
   if (!prefix) {
