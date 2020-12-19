@@ -33,7 +33,18 @@ export async function activate(context: vscode.ExtensionContext) {
     const openEditor = vscode.window.visibleTextEditors.filter(
       editor => editor.document.uri === event.document.uri
     )[0];
-    decorate(openEditor);
+    if (openEditor) {
+      decorate(openEditor);
+    }
+  });
+
+  vscode.workspace.onDidOpenTextDocument(event => {
+    const openEditor = vscode.window.visibleTextEditors.filter(
+      editor => editor.document.uri === event.uri
+    )[0];
+    if (openEditor) {
+      decorate(openEditor);
+    }
   });
 
   vscode.workspace.onDidChangeConfiguration(event => {
@@ -45,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
       initializePolarion();
     }
   });
-  vscode.workspace.onDidOpenTextDocument(e => { console.log('open file: ' + e); });
+
 }
 
 // this method is called when your extension is deactivated
@@ -162,6 +173,6 @@ function checkSettings() {
   if (missingConfiguration.length > 0) {
     var message = 'The following Polarion settings are not set: ';
     message = message.concat(missingConfiguration.join(', '));
-    vscode.window.showErrorMessage(message);
+    vscode.window.showWarningMessage(message);
   }
 }

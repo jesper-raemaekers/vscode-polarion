@@ -1,24 +1,36 @@
 import * as soap from "soap";
+import * as vscode from 'vscode';
 
 export class Polarion {
-
+  // soap clients
   soapClient: soap.Client;
   soapTracker: soap.Client;
+
+  //polarion config
   soapUser: string;
   soapPassword: string;
-  // polarionUrl: string;
   polarionProject: string;
+  polarionUrl: string;
 
+  //initialized boolean
   initialized: boolean;
 
+  //session id
   sessionID: any;
+
+  //message related
+  numberOfErrorToShow: number;
+  numberOfSuccesToShow: number;
 
   constructor(url: string, projectName: string, username: string, password: string) {
     this.soapUser = username;
     this.soapPassword = password;
     this.polarionProject = projectName;
+    this.polarionUrl = url;
     this.initialized = false;
     this.sessionID = '';
+    this.numberOfErrorToShow = 1;
+    this.numberOfSuccesToShow = 1;
 
     var soap = require('soap');
     this.soapTracker = soap.createClientAsync(url.concat('/ws/services/TrackerWebService?wsdl'));
@@ -29,15 +41,12 @@ export class Polarion {
   async initialize() {
     await this.soapTracker.then((client: soap.Client) => {
       this.soapTracker = client;
-      console.log('tracker ok');
-    }, (err: string) => { console.log('tracker fail'); });
+    }, (err: string) => { this.reportError('Could not connect to Polarion TrackerWebService on ' + this.polarionUrl); });
 
     await this.soapClient.then((client: soap.Client) => {
       this.soapClient = client;
       this.initialized = true;
-      console.log('ok client');
-
-    }, (reason: string) => { console.log('fail client'); });
+    }, (reason: string) => { this.reportError('Could not connect to Polarion SessionWebService on ' + this.polarionUrl); });
 
     await this.getSession();
   }
@@ -62,10 +71,12 @@ export class Polarion {
       this.sessionID = result[2].sessionID;
 
       console.log('polarion.login: Logged in with session: ' + this.sessionID.$value);
+      this.reportInfo('Logged in to Polarion!');
       loggedIn = true;
 
     }, (reason: string) => {
       console.log('polarion.login: could not login with expection: ' + reason);
+      this.reportError('Could not login to Polarion');
     });
     return loggedIn;
   }
@@ -78,9 +89,7 @@ export class Polarion {
     }
 
     await this.soapClient.hasSubjectAsync({}).then((result: any) => {
-      // save session ID
-      let r = result[0];
-      console.log('polarion.sessionValid: result[0]: ' + r.hasSubjectReturn);
+      // save session ID if stil valid
       if (result[0].hasSubjectReturn === true) {
         stillLoggedIn = true;
         this.sessionID = result[2].sessionID;
@@ -94,6 +103,11 @@ export class Polarion {
   }
 
   private async getWorkItem(itemId: string): Promise<any | undefined> {
+    // don't bother requesting if not initialized
+    if (this.initialized === false) {
+      return undefined;
+    }
+
     let workItem: any = undefined;
     this.soapTracker.addSoapHeader('<ns1:sessionID xmlns:ns1="http://ws.polarion.com/session" soap:actor="http://schemas.xmlsoap.org/soap/actor/next" soap:mustUnderstand="0">' + this.sessionID.$value + '</ns1:sessionID>');
 
@@ -127,4 +141,20 @@ export class Polarion {
       return undefined;
     }
   }
+
+  private reportError(err: string) {
+    if (this.numberOfErrorToShow > 0) {
+      vscode.window.showErrorMessage(err);
+      console.error('Polarion.reportError: ' + err);
+      this.numberOfErrorToShow--;
+    }
+  }
+  private reportInfo(err: string) {
+    if (this.numberOfSuccesToShow > 0) {
+      vscode.window.showInformationMessage(err);
+      console.log('Polarion.reportInfo: ' + err);
+      this.numberOfSuccesToShow--;
+    }
+  }
+
 }
