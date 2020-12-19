@@ -6,9 +6,7 @@ This extension finds work items in polarion and add the title of the work item b
 
 After setup after any save expect the titles to be displayed like depicted below:
 
-![Example](images/example1.jpg)
-
-## Requirements
+![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/example1.jpg?raw=true)
 
 
 
@@ -36,7 +34,7 @@ Password is stored in plain text in settings.
 
 Only the first workitem is handled:
 
-![Example](images/limitation1.jpg)
+![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/limitation1.jpg?raw=true)
 
 ## Release Notes
 
