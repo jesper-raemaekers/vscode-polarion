@@ -1,10 +1,10 @@
 # vscode-polarion README
 
-This extension finds work items in polarion and add the title of the work item behind the item ID in any text.
+This extension finds work items in polarion and add the title of the work item behind the item ID in any text. These texts are decorations in Code and do not interfere with the document itself.
 
 ## Features
 
-After setup after any save expect the titles to be displayed like depicted below.:
+After setup after any save expect the titles to be displayed like depicted below:
 
 ![Example](images/example1.jpg)
 
@@ -20,17 +20,21 @@ For example:
 
 This extension contributes the following settings:
 
-* `Polarion.Username`: enable/disable this extension
-* `Polarion.Password`: enable/disable this extension
-* `Polarion.Url`: enable/disable this extension
-* `Polarion.Project`: enable/disable this extension
-* `Polarion.Prefix`: enable/disable this extension
-* `Polarion.Color`: enable/disable this extension
+* `Polarion.Username`: The polarion username to log in
+* `Polarion.Password`: The password for that user
+* `Polarion.Url`: The polarion url, f.e.: http://polarion2020.example.com/polarion
+* `Polarion.Project`: The polarion project ID
+* `Polarion.Prefix`: The ticket prefix without the -
+* `Polarion.Color`: The color for the texts that are added
 
 
 ## Known Issues
 
 Very little error handling and reporting. If it doesn't work, check the Developers tools logs.
+
+Only the first workitem is handled:
+
+![Example](images/limitation1.jpg)
 
 ## Release Notes
 
