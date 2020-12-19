@@ -1,11 +1,11 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { config } from 'process';
 import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
 
 let workItems = new Map<string, string>();
 let polarion: Polarion;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -64,62 +64,59 @@ async function initializePolarion() {
   }
 }
 
-const decorationType = vscode.window.createTextEditorDecorationType({
-
-});
+const decorationType = vscode.window.createTextEditorDecorationType({});
 
 async function decorate(editor: vscode.TextEditor) {
-  let decorationColor = getDecorateColor();
-  let sourceCode = editor.document.getText();
   let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
+  // Check if a prefix is defined
+  if (prefix) {
+    let decorationColor = getDecorateColor();
+    let sourceCode = editor.document.getText();
+    let regex = "(" + prefix + "-\\d+)";
 
-  let regex = "(" + prefix + "-\\d+)";
-  if (!prefix) {
-    return;
+    let decorationsArray: vscode.DecorationOptions[] = [];
+
+    const sourceCodeArr = sourceCode.split('\n');
+
+    //itterate over each line
+    for (let line = 0; line < sourceCodeArr.length; line++) {
+
+      let match = sourceCodeArr[line].match(regex);
+      if (match !== null && match.index !== undefined) {
+        let range = new vscode.Range(
+          new vscode.Position(line, 200),
+          new vscode.Position(line, 201)
+        );
+        var title = await getWorkItemText(match[0]);
+        let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
+        let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
+        let decoration = { range, renderOptions };
+
+        decorationsArray.push(decoration);
+      }
+    }
+    editor.setDecorations(decorationType, decorationsArray);
   }
+}
 
-  let decorationsArray: vscode.DecorationOptions[] = [];
-
-  const sourceCodeArr = sourceCode.split('\n');
-
-  for (let line = 0; line < sourceCodeArr.length; line++) {
-    let match = sourceCodeArr[line].match(regex);
-
-    if (match !== null && match.index !== undefined) {
-      let range = new vscode.Range(
-        new vscode.Position(line, 200),
-        new vscode.Position(line, 201)
-      );
-
-
-      if (!workItems.has(match[0])) {
-        if (polarion.initialized) {
-          await polarion.getTitleFromWorkItem(match[0]).then((title: string | undefined) => {
-            if (match !== null && title !== undefined) {
-              workItems.set(match[0], title);
-            }
-          });
+async function getWorkItemText(workItem: string): Promise<string> {
+  //Add to the dictionairy if not available
+  if (!workItems.has(workItem)) {
+    if (polarion.initialized) {
+      await polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
+        if (title !== undefined) {
+          workItems.set(workItem, title);
         }
-      }
-      var title = 'Not found in polarion';
-      if (workItems.has(match[0])) {
-        var title = match[0] + ': ' + workItems.get(match[0]);
-      }
-
-      let renderOptionsAfter = { contentText: title, color: decorationColor, margin: '50px' }; //, textDecoration: 'margin-left: 100px',
-      let renderOptionsDark = { after: renderOptionsAfter };
-      let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
-
-      let decoration = { range, renderOptions };
-
-
-
-      decorationsArray.push(decoration);
+      });
     }
   }
 
-
-  editor.setDecorations(decorationType, decorationsArray);
+  //lookup in dictrionairy
+  var title = 'Not found in polarion';
+  if (workItems.has(workItem)) {
+    var title = workItem + ': ' + workItems.get(workItem);
+  }
+  return title;
 }
 
 function getDecorateColor() {
@@ -134,6 +131,8 @@ function getDecorateColor() {
   }
   return selectedColor;
 }
+
+
 
 function checkSettings() {
   // let missingConfiguration: string = ''
