@@ -6,7 +6,7 @@ This extension finds work items in polarion and add the title of the work item b
 
 After setup after any save expect the titles to be displayed like depicted below.:
 
-![Example](./images/example1.jpg)
+![Example](images/example1.jpg)
 
 ## Requirements
 
