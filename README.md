@@ -8,6 +8,14 @@ After setup after any save expect the titles to be displayed like depicted below
 
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/example1.jpg?raw=true)
 
+Look for the messages that pop-up:
+
+![Logged in](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/success.jpg?raw=true)
+
+![Misconfiguration](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/warning.jpg?raw=true)
+
+![Error](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/error.jpg?raw=true)
+
 
 
 ## Extension Settings
