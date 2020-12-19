@@ -15,16 +15,9 @@ export async function activate(context: vscode.ExtensionContext) {
   initializePolarion();
 
 
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Congratulations, your extension "vscode-polarion" is now active!');
-
-  let disposable = vscode.commands.registerCommand('polarion-decorator.clearCache', () => {
-    // The code you place here will be executed every time your command is executed
-
-    // Display a message box to the user
+  let disposable = vscode.commands.registerCommand('vscode-polarion.clearCache', () => {
     workItems.clear();
-    vscode.window.showInformationMessage('Cleared polarion workitem cache');
+    vscode.window.showInformationMessage('Cleared polarion work item cache');
   });
 
   context.subscriptions.push(disposable);

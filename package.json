@@ -16,14 +16,14 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:polarion-decorator.clearCache"
+    "onCommand:vscode-polarion.clearCache"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-polarion.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-polarion.clearCache",
+        "title": "Clear polarion cache"
       }
     ],
     "configuration": {
