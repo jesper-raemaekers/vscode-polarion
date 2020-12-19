@@ -52,7 +52,7 @@ Only the first workitem is handled:
 ## Release Notes
 
 
-### 0.1.0
+### 0.1.1
 
 Add editor context menu option. some error reporting in place.
 
