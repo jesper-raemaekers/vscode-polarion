@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { config } from 'process';
 import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
 
@@ -11,17 +12,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   checkSettings();
 
-  let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
-  let polarionProject: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Project');
-  let polarionUsername: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Username');
-  let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
+  initializePolarion();
 
-  if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
-    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword);
-    await polarion.initialize();
-    // let x = await polarion.getTitleFromWorkItem('CAR-509');
-    // console.log(x);
-  }
 
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
@@ -43,10 +35,33 @@ export async function activate(context: vscode.ExtensionContext) {
     )[0];
     decorate(openEditor);
   });
+
+  vscode.workspace.onDidChangeConfiguration(event => {
+    let configChange = event.affectsConfiguration('Polarion');
+
+    if (configChange) {
+      checkSettings();
+
+      initializePolarion();
+    }
+  });
+  vscode.workspace.onDidOpenTextDocument(e => { console.log('open file: ' + e); });
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
+
+async function initializePolarion() {
+  let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
+  let polarionProject: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Project');
+  let polarionUsername: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Username');
+  let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
+
+  if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
+    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword);
+    await polarion.initialize();
+  }
+}
 
 const decorationType = vscode.window.createTextEditorDecorationType({
 

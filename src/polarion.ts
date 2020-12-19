@@ -14,7 +14,6 @@ export class Polarion {
   sessionID: any;
 
   constructor(url: string, projectName: string, username: string, password: string) {
-    console.log('constructing polarion connection');
     this.soapUser = username;
     this.soapPassword = password;
     this.polarionProject = projectName;
