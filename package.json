@@ -24,6 +24,10 @@
       {
         "command": "vscode-polarion.clearCache",
         "title": "Clear polarion cache"
+      },
+      {
+        "command": "vscode-polarion.openPolarion",
+        "title": "Open item in Polarion"
       }
     ],
     "configuration": {
@@ -60,6 +64,14 @@
           "description": "Color for Polarion inserts in files"
         }
       }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "vscode-polarion.openPolarion",
+          "group": "polarion@1"
+        }
+      ]
     }
   },
   "scripts": {
@@ -90,6 +102,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "open": "^7.3.0",
     "soap": "^0.35.0"
   }
 }

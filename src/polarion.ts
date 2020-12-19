@@ -142,6 +142,11 @@ export class Polarion {
     }
   }
 
+  async getUrlFromWorkItem(itemId: string): Promise<string | undefined> {
+    // for now just construct the URL
+    return this.polarionUrl.concat('/#/project/', this.polarionProject, '/workitem?id=', itemId);
+  }
+
   private reportError(err: string) {
     if (this.numberOfErrorToShow > 0) {
       vscode.window.showErrorMessage(err);

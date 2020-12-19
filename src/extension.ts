@@ -3,6 +3,8 @@
 import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
 
+const open = require('open');
+
 let workItems = new Map<string, string>();
 let polarion: Polarion;
 
@@ -18,6 +20,12 @@ export async function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.commands.registerCommand('vscode-polarion.clearCache', () => {
     workItems.clear();
     vscode.window.showInformationMessage('Cleared polarion work item cache');
+  });
+
+  context.subscriptions.push(disposable);
+
+  disposable = vscode.commands.registerCommand('vscode-polarion.openPolarion', async () => {
+    await handleOpenPolarion();
   });
 
   context.subscriptions.push(disposable);
@@ -96,6 +104,43 @@ async function decorate(editor: vscode.TextEditor) {
       }
     }
     editor.setDecorations(decorationType, decorationsArray);
+  }
+}
+
+async function handleOpenPolarion() {
+  const editor = vscode.window.activeTextEditor;
+  if (editor !== undefined) {
+    if (editor.selection.isEmpty) {
+      // the Position object gives you the line and character where the cursor is
+      const position = editor.selection.active;
+
+      let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
+      // Check if a prefix is defined
+      if (prefix) {
+        let sourceCode = editor.document.getText(new vscode.Range(new vscode.Position(position.line, 0), new vscode.Position(position.line, 200)));
+        let re = RegExp("(" + prefix + "-\\d+)", 'g');
+        var m;
+        let matches = new Map<string, vscode.Range>();
+        do {
+          m = re.exec(sourceCode);
+          if (m) {
+            matches.set(m[0], new vscode.Range(new vscode.Position(position.line, m.index), new vscode.Position(position.line, m.index + m[0].length)));
+          }
+        } while (m);
+
+        matches.forEach(async (value: vscode.Range, key: string, map: Map<string, vscode.Range>) => {
+          if (matches.size === 1) {
+            open(await polarion.getUrlFromWorkItem(key));
+          }
+          else if (matches.size > 1) {
+            //check if cursor is in range
+            if (value.contains(new vscode.Position(position.line, position.character))) {
+              open(await polarion.getUrlFromWorkItem(key));
+            }
+          }
+        });
+      }
+    }
   }
 }
 
