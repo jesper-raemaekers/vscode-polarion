@@ -32,6 +32,8 @@ This extension contributes the following settings:
 
 Very little error handling and reporting. If it doesn't work, check the Developers tools logs.
 
+Password is stored in plain text in settings.
+
 Only the first workitem is handled:
 
 ![Example](images/limitation1.jpg)
