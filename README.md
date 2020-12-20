@@ -51,7 +51,7 @@ Only the first workitem is handled:
 
 ## Release Notes
 
-### 0.1.2
+### 0.1.4
 
 Adding logo
 
