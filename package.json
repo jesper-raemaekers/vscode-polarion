@@ -8,7 +8,7 @@
   },
   "license": "GPL-3.0-or-later",
   "icon": "logo/logo.png",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.52.0"
   },
