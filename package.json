@@ -7,7 +7,7 @@
     "url": "https://github.com/jesper-raemaekers/vscode-polarion"
   },
   "license": "GPL-3.0-or-later",
-  "icon": "images/logo.png",
+  "icon": "logo/logo.png",
   "version": "0.1.3",
   "engines": {
     "vscode": "^1.52.0"
