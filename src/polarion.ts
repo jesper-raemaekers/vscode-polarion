@@ -21,6 +21,7 @@ export class Polarion {
   //message related
   numberOfErrorToShow: number;
   numberOfSuccesToShow: number;
+  lastMessage: string | undefined;
 
   constructor(url: string, projectName: string, username: string, password: string) {
     this.soapUser = username;
@@ -31,6 +32,7 @@ export class Polarion {
     this.sessionID = '';
     this.numberOfErrorToShow = 1;
     this.numberOfSuccesToShow = 1;
+    this.lastMessage = undefined;
 
     var soap = require('soap');
     this.soapTracker = soap.createClientAsync(url.concat('/ws/services/TrackerWebService?wsdl'));
@@ -71,7 +73,7 @@ export class Polarion {
       this.sessionID = result[2].sessionID;
 
       console.log('polarion.login: Logged in with session: ' + this.sessionID.$value);
-      this.reportInfo('Logged in to Polarion!');
+      this.reportInfo('Polarion login successful!');
       loggedIn = true;
 
     }, (reason: string) => {
@@ -148,6 +150,7 @@ export class Polarion {
   }
 
   private reportError(err: string) {
+    this.lastMessage = err;
     if (this.numberOfErrorToShow > 0) {
       vscode.window.showErrorMessage(err);
       console.error('Polarion.reportError: ' + err);
@@ -155,6 +158,7 @@ export class Polarion {
     }
   }
   private reportInfo(err: string) {
+    this.lastMessage = err;
     if (this.numberOfSuccesToShow > 0) {
       vscode.window.showInformationMessage(err);
       console.log('Polarion.reportInfo: ' + err);

@@ -2,20 +2,32 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
+import { PolarionStatus } from "./status";
 
 const open = require('open');
 
 let workItems = new Map<string, string>();
 let polarion: Polarion;
 
+let polarionStatus: PolarionStatus;
+// let polarionStatusBar: vscode.StatusBarItem;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
 
+  let polarionStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+  polarionStatusBar.tooltip = "Clear to clear cached work items";
+  polarionStatusBar.command = "vscode-polarion.clearCache";
+  context.subscriptions.push(polarionStatusBar);
+
+  polarionStatus = new PolarionStatus(polarionStatusBar);
+
+  polarionStatus.update(polarion);
+
   checkSettings();
 
   initializePolarion();
-
 
   let disposable = vscode.commands.registerCommand('vscode-polarion.clearCache', () => {
     workItems.clear();
@@ -55,6 +67,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+
 }
 
 // this method is called when your extension is deactivated
@@ -68,13 +81,15 @@ async function initializePolarion() {
 
   if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
     polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword);
-    await polarion.initialize();
+    await polarion.initialize().finally(() => { polarionStatus.update(polarion); });
+
   }
 }
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
 
 async function decorate(editor: vscode.TextEditor) {
+  polarionStatus.startUpdate(polarion, workItems);
   let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
   // Check if a prefix is defined
   if (prefix) {
@@ -105,6 +120,7 @@ async function decorate(editor: vscode.TextEditor) {
     }
     editor.setDecorations(decorationType, decorationsArray);
   }
+  polarionStatus.endUpdate();
 }
 
 async function handleOpenPolarion() {
@@ -205,3 +221,4 @@ function checkSettings() {
     vscode.window.showWarningMessage(message);
   }
 }
+
