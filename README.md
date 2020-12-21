@@ -20,6 +20,10 @@ Look for the messages that pop-up:
 
 ![Error](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/error.jpg?raw=true)
 
+General information is always available in the status bar:
+
+![Status logged in](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/bar1.jpg?raw=true)
+![Status updating document](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/bar2.jpg?raw=true)
 
 
 
@@ -50,6 +54,10 @@ Only the first workitem is handled:
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/limitation1.jpg?raw=true)
 
 ## Release Notes
+
+### 0.1.5
+
+Added status bar item showing update progress. Nice for larger documents or slower servers.
 
 ### 0.1.4
 
