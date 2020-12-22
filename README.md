@@ -25,6 +25,10 @@ General information is always available in the status bar:
 ![Status logged in](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/bar1.jpg?raw=true)
 ![Status updating document](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/bar2.jpg?raw=true)
 
+More detailed info is printed in a newly added output channel:
+
+![Polarion output](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/output.jpg?raw=true)
+
 
 
 ## Extension Settings
@@ -54,6 +58,10 @@ Only the first workitem is handled:
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/limitation1.jpg?raw=true)
 
 ## Release Notes
+
+### 0.1.6
+
+Added output channel for more detailed logs that are user accesible.
 
 ### 0.1.5
 
