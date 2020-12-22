@@ -10,11 +10,13 @@ let workItems = new Map<string, string>();
 let polarion: Polarion;
 
 let polarionStatus: PolarionStatus;
-// let polarionStatusBar: vscode.StatusBarItem;
+let outputChannel: vscode.OutputChannel;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
+
+  outputChannel = vscode.window.createOutputChannel("Polarion");
 
   let polarionStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   polarionStatusBar.tooltip = "Clear to clear cached work items";
@@ -80,7 +82,7 @@ async function initializePolarion() {
   let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
 
   if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
-    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword);
+    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
     await polarion.initialize().finally(() => { polarionStatus.update(polarion); });
 
   }
@@ -113,6 +115,7 @@ async function decorate(editor: vscode.TextEditor) {
         var title = await getWorkItemText(match[0]);
         let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
         let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
+        let hoverMessage = 'Some more info';
         let decoration = { range, renderOptions };
 
         decorationsArray.push(decoration);

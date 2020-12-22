@@ -19,20 +19,26 @@ export class Polarion {
   sessionID: any;
 
   //message related
-  numberOfErrorToShow: number;
-  numberOfSuccesToShow: number;
+  numberOfPopupsToShow: number;
   lastMessage: string | undefined;
+  outputChannel: vscode.OutputChannel;
 
-  constructor(url: string, projectName: string, username: string, password: string) {
+
+  constructor(url: string, projectName: string, username: string, password: string, outputChannel: vscode.OutputChannel) {
     this.soapUser = username;
     this.soapPassword = password;
     this.polarionProject = projectName;
     this.polarionUrl = url;
     this.initialized = false;
     this.sessionID = '';
-    this.numberOfErrorToShow = 1;
-    this.numberOfSuccesToShow = 1;
+    this.numberOfPopupsToShow = 2;
     this.lastMessage = undefined;
+    this.outputChannel = outputChannel;
+
+    this.report(`Polarion service started`, LogLevel.info);
+    this.report(`With url: ${this.polarionUrl}`, LogLevel.info);
+    this.report(`With project: ${this.polarionProject}`, LogLevel.info);
+    this.report(`With user: ${this.soapUser}`, LogLevel.info);
 
     var soap = require('soap');
     this.soapTracker = soap.createClientAsync(url.concat('/ws/services/TrackerWebService?wsdl'));
@@ -43,12 +49,13 @@ export class Polarion {
   async initialize() {
     await this.soapTracker.then((client: soap.Client) => {
       this.soapTracker = client;
-    }, (err: string) => { this.reportError('Could not connect to Polarion TrackerWebService on ' + this.polarionUrl); });
+    }, (err: string) => { this.report(`Could not connect to Polarion TrackerWebService on ${this.polarionUrl}`, LogLevel.error, true); });
 
     await this.soapClient.then((client: soap.Client) => {
       this.soapClient = client;
       this.initialized = true;
-    }, (reason: string) => { this.reportError('Could not connect to Polarion SessionWebService on ' + this.polarionUrl); });
+    }, (reason: string) => { this.report(`Could not connect to Polarion SessionWebService on ${this.polarionUrl}`, LogLevel.error, true); });
+
 
     await this.getSession();
   }
@@ -72,13 +79,13 @@ export class Polarion {
       // save session ID
       this.sessionID = result[2].sessionID;
 
-      console.log('polarion.login: Logged in with session: ' + this.sessionID.$value);
-      this.reportInfo('Polarion login successful!');
+      this.report('Polarion login successful!', LogLevel.info, true);
+      this.report(`login: Logged in with session: ${this.sessionID.$value}`, LogLevel.info);
       loggedIn = true;
 
     }, (reason: string) => {
-      console.log('polarion.login: could not login with expection: ' + reason);
-      this.reportError('Could not login to Polarion');
+      this.report('Polarion not logged in', LogLevel.error, true);
+      this.report(`login: could not login with expection: ${reason}`, LogLevel.info);
     });
     return loggedIn;
   }
@@ -95,10 +102,10 @@ export class Polarion {
       if (result[0].hasSubjectReturn === true) {
         stillLoggedIn = true;
         this.sessionID = result[2].sessionID;
-        console.log('polarion.sessionValid: Session still valid');
-      } else { console.log('polarion.sessionValid: Session not valid'); }
+        this.report(`sessionValid: Session still valid`, LogLevel.info);
+      } else { this.report(`sessionValid: Session not valid`, LogLevel.info); }
     }, (reason: string) => {
-      console.log('polarion.sessionValid: Failure to get session with exception: ' + reason);
+      this.report(`sessionValid: Failure to get session with exception: ${reason}`, LogLevel.error);
     });
 
     return stillLoggedIn;
@@ -119,15 +126,15 @@ export class Polarion {
       .then((result: any) => {
         let r = result[0].getWorkItemByIdReturn;
         if (r.attributes.unresolvable === 'false') {
-          console.log('polarion.getWorkItem: Found workitem ' + itemId + ': ' + r.title);
+          this.report(`getWorkItem: Found workitem ${itemId} ${r.title}`, LogLevel.info);
           workItem = r;
         }
         else {
-          console.log('polarion.getWorkItem: Could not find workitem ' + itemId);
+          this.report(`getWorkItem: Could not find workitem ${itemId}`, LogLevel.info);
         }
       }
         , (reason: string) => {
-          console.log('polarion.getWorkItem: Could not find ' + itemId + ' with exception: ' + reason);
+          this.report(`getWorkItem: Could not find ${itemId} with exception: ${reason}`, LogLevel.error);
         });
 
     return workItem;
@@ -149,21 +156,26 @@ export class Polarion {
     return this.polarionUrl.concat('/#/project/', this.polarionProject, '/workitem?id=', itemId);
   }
 
-  private reportError(err: string) {
-    this.lastMessage = err;
-    if (this.numberOfErrorToShow > 0) {
-      vscode.window.showErrorMessage(err);
-      console.error('Polarion.reportError: ' + err);
-      this.numberOfErrorToShow--;
-    }
-  }
-  private reportInfo(err: string) {
-    this.lastMessage = err;
-    if (this.numberOfSuccesToShow > 0) {
-      vscode.window.showInformationMessage(err);
-      console.log('Polarion.reportInfo: ' + err);
-      this.numberOfSuccesToShow--;
+  private report(msg: string, level: LogLevel, popup: boolean = false) {
+    this.outputChannel.appendLine(msg);
+
+    if (popup && this.numberOfPopupsToShow > 0) {
+      this.numberOfPopupsToShow--;
+      this.lastMessage = msg; // only show important messages
+      switch (level) {
+        case LogLevel.info:
+          vscode.window.showInformationMessage(msg);
+          break;
+        case LogLevel.error:
+          vscode.window.showErrorMessage(msg);
+          break;
+      }
     }
   }
 
+}
+
+enum LogLevel {
+  info,
+  error
 }
