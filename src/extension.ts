@@ -94,6 +94,7 @@ const decorationType = vscode.window.createTextEditorDecorationType({});
 async function decorate(editor: vscode.TextEditor) {
   polarionStatus.startUpdate(polarion);
   let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
+  let enableHover: boolean | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Hover');
   // Check if a prefix is defined
   if (prefix) {
     let decorationColor = getDecorateColor();
@@ -116,10 +117,16 @@ async function decorate(editor: vscode.TextEditor) {
         var title = await getWorkItemText(match[0]);
         let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
         let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
-        let hoverMessage = await buildHoverMarkdown(match[0]);
-        let decoration = { range, renderOptions, hoverMessage };
 
-        decorationsArray.push(decoration);
+        if (enableHover === true) {
+          let hoverMessage = await buildHoverMarkdown(match[0]);
+          let decoration = { range, renderOptions, hoverMessage };
+          decorationsArray.push(decoration);
+        }
+        else {
+          let decoration = { range, renderOptions };
+          decorationsArray.push(decoration);
+        }
       }
     }
     editor.setDecorations(decorationType, decorationsArray);

@@ -63,6 +63,11 @@
           "type": "string",
           "default": "#777777",
           "description": "Color for Polarion inserts in files"
+        },
+        "Polarion.Hover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enabled the hover feature allowing to see basic info of a work item"
         }
       }
     },
