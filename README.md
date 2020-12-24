@@ -10,6 +10,10 @@ After setup after any save expect the titles to be displayed like depicted below
 
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/example1.jpg?raw=true)
 
+Hover over the text behind trhe line or on the item for a hover with more detailed info:
+
+![Hover info](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/hover.JPG?raw=true)
+
 Right click on a work item name will enable the 'Open item in Polarion' option in this context menu.
 
 ![Context menu](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/context_menu.jpg?raw=true)
@@ -51,8 +55,6 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-Very little error handling and reporting. If it doesn't work, check the Developers tools logs.
-
 Password is stored in plain text in settings.
 
 Only the first workitem is handled:
@@ -60,6 +62,10 @@ Only the first workitem is handled:
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/limitation1.jpg?raw=true)
 
 ## Release Notes
+
+### 0.1.7
+
+Added hover menu with more work item info.
 
 ### 0.1.6
 
