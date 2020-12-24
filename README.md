@@ -51,6 +51,7 @@ This extension contributes the following settings:
 * `Polarion.Project`: The polarion project ID
 * `Polarion.Prefix`: The ticket prefix without the -
 * `Polarion.Color`: The color for the texts that are added
+* `Polarion.Hover`: Enables the hover menu
 
 
 ## Known Issues
