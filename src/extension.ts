@@ -114,18 +114,26 @@ async function decorate(editor: vscode.TextEditor) {
           new vscode.Position(line, 200),
           new vscode.Position(line, 201)
         );
+
         var title = await getWorkItemText(match[0]);
         let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
         let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
 
         if (enableHover === true) {
           let hoverMessage = await buildHoverMarkdown(match[0]);
-          let decoration = { range, renderOptions, hoverMessage };
-          decorationsArray.push(decoration);
+          let afterLineDecoration = { range, renderOptions, hoverMessage };
+          decorationsArray.push(afterLineDecoration);
+
+          range = new vscode.Range(
+            new vscode.Position(line, match.index),
+            new vscode.Position(line, match.index + match[0].length - 1)
+          );
+          let onItemDecoration = { range, hoverMessage };
+          decorationsArray.push(onItemDecoration);
         }
         else {
-          let decoration = { range, renderOptions };
-          decorationsArray.push(decoration);
+          let afterLineDecoration = { range, renderOptions };
+          decorationsArray.push(afterLineDecoration);
         }
       }
     }
@@ -136,12 +144,14 @@ async function decorate(editor: vscode.TextEditor) {
 
 async function buildHoverMarkdown(workItem: string): Promise<string[]> {
   let item = await polarion.getWorkItem(workItem);
+  let url = await polarion.getUrlFromWorkItem(workItem);
   let hover: string[] = [];
   if (item !== undefined) {
     hover.push(`${workItem} (${item.type.id}) ***${item.title}***  \nAuthor: ${item.author.id}  \n Status: ${item.status.id}`);
     if (item.description) {
       hover.push(`${item.description?.content}`);
     }
+    hover.push(`[Open in Polarion](${url})`);
   }
   else {
     hover.push(`Not found`);
