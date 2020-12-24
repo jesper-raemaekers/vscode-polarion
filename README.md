@@ -2,6 +2,8 @@
 
 This extension finds work items in polarion and add the title of the work item behind the item ID in any text. These texts are decorations in Code and do not interfere with the document itself.
 
+A document will be updated on save or when changes the file that is viewed in Code.
+
 ## Features
 
 After setup after any save expect the titles to be displayed like depicted below:

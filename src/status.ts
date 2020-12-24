@@ -4,7 +4,6 @@ import { Polarion } from "./polarion";
 export class PolarionStatus {
   barItem: vscode.StatusBarItem;
   updating: boolean;
-  workItems: Map<string, string> | undefined;
   intervalId: NodeJS.Timeout | undefined;
   polarion: Polarion | undefined;
 
@@ -12,7 +11,6 @@ export class PolarionStatus {
   constructor(statusBarItem: vscode.StatusBarItem) {
     this.barItem = statusBarItem;
     this.updating = false;
-    this.workItems = undefined;
   }
 
   update(polarion: Polarion | undefined) {
@@ -20,9 +18,8 @@ export class PolarionStatus {
     this.updateStatusBarItem();
   }
 
-  startUpdate(polarion: Polarion | undefined, workItems: Map<string, string>) {
+  startUpdate(polarion: Polarion | undefined) {
     this.updating = true;
-    this.workItems = workItems;
     this.polarion = polarion;
 
     this.updateStatusBarItem();
@@ -50,7 +47,7 @@ export class PolarionStatus {
       }
       else {
         if (this.updating === true) {
-          this.barItem.text = `$(sync) Updating document (cache: ${this.workItems?.size})`;
+          this.barItem.text = `$(sync) Updating document (cache: ${this.polarion.itemCache?.size})`;
         }
         else {
           this.barItem.text = `$(check) ${this.polarion.lastMessage}`;

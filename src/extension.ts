@@ -6,7 +6,6 @@ import { PolarionStatus } from "./status";
 
 const open = require('open');
 
-let workItems = new Map<string, string>();
 let polarion: Polarion;
 
 let polarionStatus: PolarionStatus;
@@ -32,7 +31,9 @@ export async function activate(context: vscode.ExtensionContext) {
   initializePolarion();
 
   let disposable = vscode.commands.registerCommand('vscode-polarion.clearCache', () => {
-    workItems.clear();
+    if (polarion) {
+      polarion.clearCache();
+    }
     vscode.window.showInformationMessage('Cleared polarion work item cache');
   });
 
@@ -91,7 +92,7 @@ async function initializePolarion() {
 const decorationType = vscode.window.createTextEditorDecorationType({});
 
 async function decorate(editor: vscode.TextEditor) {
-  polarionStatus.startUpdate(polarion, workItems);
+  polarionStatus.startUpdate(polarion);
   let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
   // Check if a prefix is defined
   if (prefix) {
@@ -115,8 +116,8 @@ async function decorate(editor: vscode.TextEditor) {
         var title = await getWorkItemText(match[0]);
         let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
         let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
-        let hoverMessage = 'Some more info';
-        let decoration = { range, renderOptions };
+        let hoverMessage = 'Some more info\n ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/example1.jpg?raw=true)';
+        let decoration = { range, renderOptions, hoverMessage };
 
         decorationsArray.push(decoration);
       }
@@ -124,6 +125,10 @@ async function decorate(editor: vscode.TextEditor) {
     editor.setDecorations(decorationType, decorationsArray);
   }
   polarionStatus.endUpdate();
+}
+
+async function buildHoverMarkdown() {
+
 }
 
 async function handleOpenPolarion() {
@@ -165,22 +170,14 @@ async function handleOpenPolarion() {
 
 async function getWorkItemText(workItem: string): Promise<string> {
   //Add to the dictionairy if not available
-  if (!workItems.has(workItem)) {
-    if (polarion.initialized) {
-      await polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
-        if (title !== undefined) {
-          workItems.set(workItem, title);
-        }
-      });
+  var workItemText = 'Not found in polarion';
+  await polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
+    if (title !== undefined) {
+      workItemText = workItem + ': ' + title;
     }
-  }
+  });
 
-  //lookup in dictrionairy
-  var title = 'Not found in polarion';
-  if (workItems.has(workItem)) {
-    var title = workItem + ': ' + workItems.get(workItem);
-  }
-  return title;
+  return workItemText;
 }
 
 function getDecorateColor() {

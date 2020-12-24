@@ -23,6 +23,9 @@ export class Polarion {
   lastMessage: string | undefined;
   outputChannel: vscode.OutputChannel;
 
+  //cache
+  itemCache: Map<string, any>;
+
 
   constructor(url: string, projectName: string, username: string, password: string, outputChannel: vscode.OutputChannel) {
     this.soapUser = username;
@@ -34,6 +37,7 @@ export class Polarion {
     this.numberOfPopupsToShow = 2;
     this.lastMessage = undefined;
     this.outputChannel = outputChannel;
+    this.itemCache = new Map<string, any>();
 
     this.report(`Polarion service started`, LogLevel.info);
     this.report(`With url: ${this.polarionUrl}`, LogLevel.info);
@@ -111,7 +115,30 @@ export class Polarion {
     return stillLoggedIn;
   }
 
-  private async getWorkItem(itemId: string): Promise<any | undefined> {
+
+  async getWorkItem(workItem: string): Promise<any | undefined> {
+    //Add to the dictionairy if not available
+    if (!this.itemCache.has(workItem)) {
+      if (this.initialized) {
+        await this.getWorkItemFromPolarion(workItem).then((item: any | undefined) => {
+          if (item !== undefined) {
+            this.itemCache.set(workItem, item);
+          }
+        });
+      }
+    }
+
+    //lookup in dictrionairy
+    var item = undefined;
+    if (this.itemCache.has(workItem)) {
+      item = this.itemCache.get(workItem);
+    }
+    return item;
+  }
+
+
+
+  private async getWorkItemFromPolarion(itemId: string): Promise<any | undefined> {
     // don't bother requesting if not initialized
     if (this.initialized === false) {
       return undefined;
@@ -171,6 +198,10 @@ export class Polarion {
           break;
       }
     }
+  }
+
+  clearCache() {
+    this.itemCache.clear();
   }
 
 }
