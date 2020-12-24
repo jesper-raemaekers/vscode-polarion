@@ -121,9 +121,8 @@ export class Polarion {
     if (!this.itemCache.has(workItem)) {
       if (this.initialized) {
         await this.getWorkItemFromPolarion(workItem).then((item: any | undefined) => {
-          if (item !== undefined) {
-            this.itemCache.set(workItem, item);
-          }
+          // Also add undefined workItems to avoid looking them up more than once
+          this.itemCache.set(workItem, item);
         });
       }
     }

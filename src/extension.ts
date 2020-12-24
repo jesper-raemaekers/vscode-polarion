@@ -106,7 +106,7 @@ async function decorate(editor: vscode.TextEditor) {
 
     //itterate over each line
     for (let line = 0; line < sourceCodeArr.length; line++) {
-
+      //TODO: make two markdowns. one on the number and one behind.
       let match = sourceCodeArr[line].match(regex);
       if (match !== null && match.index !== undefined) {
         let range = new vscode.Range(
@@ -116,7 +116,7 @@ async function decorate(editor: vscode.TextEditor) {
         var title = await getWorkItemText(match[0]);
         let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
         let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
-        let hoverMessage = 'Some more info\n ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/example1.jpg?raw=true)';
+        let hoverMessage = await buildHoverMarkdown(match[0]);
         let decoration = { range, renderOptions, hoverMessage };
 
         decorationsArray.push(decoration);
@@ -127,8 +127,19 @@ async function decorate(editor: vscode.TextEditor) {
   polarionStatus.endUpdate();
 }
 
-async function buildHoverMarkdown() {
-
+async function buildHoverMarkdown(workItem: string): Promise<string[]> {
+  let item = await polarion.getWorkItem(workItem);
+  let hover: string[] = [];
+  if (item !== undefined) {
+    hover.push(`${workItem} (${item.type.id}) ***${item.title}***  \nAuthor: ${item.author.id}  \n Status: ${item.status.id}`);
+    if (item.description) {
+      hover.push(`${item.description?.content}`);
+    }
+  }
+  else {
+    hover.push(`Not found`);
+  }
+  return hover;
 }
 
 async function handleOpenPolarion() {
