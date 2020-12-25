@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { findItemsInDocument } from './utils';
+import { listItemsInDocument } from './utils';
 
 export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkItemOutline> {
 
@@ -39,10 +39,11 @@ export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkIte
 
   private findWorkItemsInEditor(editor: vscode.TextEditor): WorkItemOutline[] {
     let list: WorkItemOutline[] = [];
+    let items = listItemsInDocument(editor);
 
-    let items = findItemsInDocument(editor);
-
-    items.forEach((range, name) => { list.push(new WorkItemOutline(name, range, vscode.TreeItemCollapsibleState.None)); });
+    items.forEach((obj, index) => {
+      list.push(new WorkItemOutline(obj.name, obj.range, vscode.TreeItemCollapsibleState.None));
+    });
 
     return list;
   }
@@ -52,30 +53,14 @@ export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkIte
 class WorkItemOutline extends vscode.TreeItem {
   constructor(
     public readonly label: string,
-    // private version: string,
     public readonly range: vscode.Range,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly command?: vscode.Command
   ) {
     super(label, collapsibleState);
-    // this.tooltip = `${this.label}-${this.version}`;
-    // this.description = this.version;
-
-    let t: vscode.Command = { title: '', command: 'revealLine', arguments: [{ lineNumber: range.start.line, at: 'center' }] };
-    // let t: vscode.Command = { title: 'Open File', command: 'vscode.open', arguments: [] };
+    let t: vscode.Command = { title: '', command: 'revealLine', arguments: [{ lineNumber: range.start.line, at: 'top' }] };
     this.command = t;
     this.range = range;
-    // let revealCommand = ;
-    // this.command = revealCommand;
-    // vscode.commands.getCommands()
-    // vscode.commands.
-
-    // {
-    //   command: 'extension.openPackageOnNpm',
-    //   title: '',
-    //   arguments: [moduleName]
-    // }
-
   }
 
   // iconPath = {
