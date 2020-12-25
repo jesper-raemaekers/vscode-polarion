@@ -19,6 +19,9 @@ let outlineProvider: any;
 export async function activate(context: vscode.ExtensionContext) {
 
   outlineProvider = new PolarionOutlinesProvider(vscode.workspace.workspaceFolders);
+
+
+
   outputChannel = vscode.window.createOutputChannel("Polarion");
 
   let polarionStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);

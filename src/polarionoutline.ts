@@ -8,10 +8,13 @@ export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkIte
   private _onDidChangeTreeData: vscode.EventEmitter<WorkItemOutline | undefined | null | void> = new vscode.EventEmitter<WorkItemOutline | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<WorkItemOutline | undefined | null | void> = this._onDidChangeTreeData.event;
 
-  constructor(private workspaceRoot: readonly vscode.WorkspaceFolder[] | undefined) { }
+  constructor(private workspaceRoot: readonly vscode.WorkspaceFolder[] | undefined) {
+    vscode.commands.registerCommand('polarion.clickOutline', (node: WorkItemOutline) => vscode.window.showInformationMessage(`Successfully called edit entry on ${node.label}.`));
+  }
 
   getTreeItem(element: WorkItemOutline): vscode.TreeItem {
     return element;
+
   }
 
   getChildren(element?: WorkItemOutline): Thenable<WorkItemOutline[]> {
@@ -51,12 +54,28 @@ class WorkItemOutline extends vscode.TreeItem {
     public readonly label: string,
     // private version: string,
     public readonly range: vscode.Range,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+    public readonly command?: vscode.Command
   ) {
     super(label, collapsibleState);
     // this.tooltip = `${this.label}-${this.version}`;
     // this.description = this.version;
+
+    let t: vscode.Command = { title: '', command: 'revealLine', arguments: [{ lineNumber: range.start.line, at: 'center' }] };
+    // let t: vscode.Command = { title: 'Open File', command: 'vscode.open', arguments: [] };
+    this.command = t;
     this.range = range;
+    // let revealCommand = ;
+    // this.command = revealCommand;
+    // vscode.commands.getCommands()
+    // vscode.commands.
+
+    // {
+    //   command: 'extension.openPackageOnNpm',
+    //   title: '',
+    //   arguments: [moduleName]
+    // }
+
   }
 
   // iconPath = {
