@@ -17,7 +17,8 @@
   ],
   "activationEvents": [
     "onStartupFinished",
-    "onCommand:vscode-polarion.clearCache"
+    "onCommand:vscode-polarion.clearCache",
+    "onView:polarionOutline"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -76,6 +77,14 @@
         {
           "command": "vscode-polarion.openPolarion",
           "group": "polarion@1"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "polarionOutline",
+          "name": "Polarion outline"
         }
       ]
     }

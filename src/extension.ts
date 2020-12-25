@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
 import { PolarionStatus } from "./status";
+import { PolarionOutlinesProvider } from './polarionoutline';
 
 const open = require('open');
 
@@ -11,10 +12,13 @@ let polarion: Polarion;
 let polarionStatus: PolarionStatus;
 let outputChannel: vscode.OutputChannel;
 
+let outlineProvider: any;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
 
+  outlineProvider = new PolarionOutlinesProvider(vscode.workspace.workspaceFolders);
   outputChannel = vscode.window.createOutputChannel("Polarion");
 
   let polarionStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -69,6 +73,8 @@ export async function activate(context: vscode.ExtensionContext) {
       initializePolarion();
     }
   });
+
+  vscode.window.registerTreeDataProvider('polarionOutline', outlineProvider);
 
 
 }
