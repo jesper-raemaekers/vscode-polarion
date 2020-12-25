@@ -54,12 +54,14 @@ export async function activate(context: vscode.ExtensionContext) {
       editor => editor.document.uri === event.document.uri
     )[0];
     if (openEditor) {
+      outlineProvider.refresh();
       decorate(openEditor);
     }
   });
 
   vscode.window.onDidChangeActiveTextEditor(event => {
     if (event) {
+      outlineProvider.refresh();
       decorate(event);
     }
   });

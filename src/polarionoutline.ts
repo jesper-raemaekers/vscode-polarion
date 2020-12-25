@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { findItemsInDocument } from './utils';
 
 export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkItemOutline> {
 
@@ -21,45 +22,24 @@ export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkIte
 
     let list: WorkItemOutline[] = [];
     if (!element) {
-      list.push(new WorkItemOutline('test', vscode.TreeItemCollapsibleState.None));
+      const editor = vscode.window.activeTextEditor;
+      if (editor !== undefined) {
+        list = this.findWorkItemsInEditor(editor);
+      }
     }
     return Promise.resolve(list);
   }
 
   refresh() {
-    //do something
     this._onDidChangeTreeData.fire();
   }
 
   private findWorkItemsInEditor(editor: vscode.TextEditor): WorkItemOutline[] {
     let list: WorkItemOutline[] = [];
 
-    // let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
-    // // Check if a prefix is defined
-    // if (prefix) {
-    //   let sourceCode = editor.document.getText();
-    //   let re = RegExp("(" + prefix + "-\\d+)", 'g');
-    //   var m;
-    //   let matches = new Map<string, vscode.Range>();
-    //   do {
-    //     m = re.exec(sourceCode);
-    //     if (m) {
-    //       matches.set(m[0], new vscode.Range(new vscode.Position(position.line, m.index), new vscode.Position(position.line, m.index + m[0].length)));
-    //     }
-    //   } while (m);
+    let items = findItemsInDocument(editor);
 
-    //   matches.forEach(async (value: vscode.Range, key: string, map: Map<string, vscode.Range>) => {
-    //     if (matches.size === 1) {
-    //       open(await polarion.getUrlFromWorkItem(key));
-    //     }
-    //     else if (matches.size > 1) {
-    //       //check if cursor is in range
-    //       if (value.contains(new vscode.Position(position.line, position.character))) {
-    //         open(await polarion.getUrlFromWorkItem(key));
-    //       }
-    //     }
-    //   });
-    // }
+    items.forEach((range, name) => { list.push(new WorkItemOutline(name, range, vscode.TreeItemCollapsibleState.None)); });
 
     return list;
   }
@@ -70,11 +50,13 @@ class WorkItemOutline extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     // private version: string,
+    public readonly range: vscode.Range,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState
   ) {
     super(label, collapsibleState);
     // this.tooltip = `${this.label}-${this.version}`;
     // this.description = this.version;
+    this.range = range;
   }
 
   // iconPath = {
