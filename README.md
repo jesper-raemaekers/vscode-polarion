@@ -10,7 +10,7 @@ After setup after any save expect the titles to be displayed like depicted below
 
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/example1.jpg?raw=true)
 
-Hover over the text behind trhe line or on the item for a hover with more detailed info:
+Hover over the text behind the line or on the item for a hover with more detailed info:
 
 ![Hover info](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/hover.JPG?raw=true)
 
