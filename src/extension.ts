@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
 import { PolarionStatus } from "./status";
 import { PolarionOutlinesProvider } from './polarionoutline';
+import { listItemsInDocument, mapItemsInDocument } from './utils';
 
 const open = require('open');
 
@@ -19,8 +20,6 @@ let outlineProvider: any;
 export async function activate(context: vscode.ExtensionContext) {
 
   outlineProvider = new PolarionOutlinesProvider(vscode.workspace.workspaceFolders);
-
-
 
   outputChannel = vscode.window.createOutputChannel("Polarion");
 
@@ -104,52 +103,35 @@ const decorationType = vscode.window.createTextEditorDecorationType({});
 
 async function decorate(editor: vscode.TextEditor) {
   polarionStatus.startUpdate(polarion);
-  let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
+  let decorationColor = getDecorateColor();
   let enableHover: boolean | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Hover');
-  // Check if a prefix is defined
-  if (prefix) {
-    let decorationColor = getDecorateColor();
-    let sourceCode = editor.document.getText();
-    let regex = "(" + prefix + "-\\d+)";
+  let decorationsArray: vscode.DecorationOptions[] = [];
 
-    let decorationsArray: vscode.DecorationOptions[] = [];
+  let items = mapItemsInDocument(editor);
 
-    const sourceCodeArr = sourceCode.split('\n');
+  for (const item of items) {
+    var title = await getWorkItemText(item[0]);
+    let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
+    let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
 
-    //itterate over each line
-    for (let line = 0; line < sourceCodeArr.length; line++) {
-      //TODO: make two markdowns. one on the number and one behind.
-      let match = sourceCodeArr[line].match(regex);
-      if (match !== null && match.index !== undefined) {
-        let range = new vscode.Range(
-          new vscode.Position(line, 200),
-          new vscode.Position(line, 201)
-        );
-
-        var title = await getWorkItemText(match[0]);
-        let renderOptionsDark = { after: { contentText: title, color: decorationColor, margin: '50px' } };
-        let renderOptions = { light: renderOptionsDark, dark: renderOptionsDark };
-
-        if (enableHover === true) {
-          let hoverMessage = await buildHoverMarkdown(match[0]);
-          let afterLineDecoration = { range, renderOptions, hoverMessage };
-          decorationsArray.push(afterLineDecoration);
-
-          range = new vscode.Range(
-            new vscode.Position(line, match.index),
-            new vscode.Position(line, match.index + match[0].length - 1)
-          );
-          let onItemDecoration = { range, hoverMessage };
-          decorationsArray.push(onItemDecoration);
-        }
-        else {
-          let afterLineDecoration = { range, renderOptions };
-          decorationsArray.push(afterLineDecoration);
-        }
+    for (const itemRange of item[1]) {
+      let hoverMessage = await buildHoverMarkdown(item[0]);
+      if (enableHover === true) {
+        let range = new vscode.Range(itemRange.start.line, itemRange.start.character, itemRange.end.line, itemRange.end.character - 1); // rebuild range to remove last character
+        let onItemDecoration = { range, hoverMessage };
+        decorationsArray.push(onItemDecoration);
+        range = new vscode.Range(itemRange.start.line, 200, itemRange.end.line, 201);
+        let afterLineDecoration = { range, renderOptions, hoverMessage };
+        decorationsArray.push(afterLineDecoration);
+      }
+      else {
+        let range = new vscode.Range(itemRange.start.line, 200, itemRange.end.line, 201);
+        let afterLineDecoration = { range, renderOptions };
+        decorationsArray.push(afterLineDecoration);
       }
     }
-    editor.setDecorations(decorationType, decorationsArray);
   }
+  editor.setDecorations(decorationType, decorationsArray);
   polarionStatus.endUpdate();
 }
 
@@ -177,38 +159,22 @@ async function handleOpenPolarion() {
       // the Position object gives you the line and character where the cursor is
       const position = editor.selection.active;
 
-      let prefix: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Prefix');
-      // Check if a prefix is defined
-      if (prefix) {
-        let sourceCode = editor.document.getText(new vscode.Range(new vscode.Position(position.line, 0), new vscode.Position(position.line, 200)));
-        let re = RegExp("(" + prefix + "-\\d+)", 'g');
-        var m;
-        let matches = new Map<string, vscode.Range>();
-        do {
-          m = re.exec(sourceCode);
-          if (m) {
-            matches.set(m[0], new vscode.Range(new vscode.Position(position.line, m.index), new vscode.Position(position.line, m.index + m[0].length)));
-          }
-        } while (m);
+      let items = listItemsInDocument(editor);
 
-        matches.forEach(async (value: vscode.Range, key: string, map: Map<string, vscode.Range>) => {
-          if (matches.size === 1) {
-            open(await polarion.getUrlFromWorkItem(key));
-          }
-          else if (matches.size > 1) {
-            //check if cursor is in range
-            if (value.contains(new vscode.Position(position.line, position.character))) {
-              open(await polarion.getUrlFromWorkItem(key));
-            }
-          }
-        });
+      let selectedItem = items.find((value) => {
+        if (value.range.contains(position)) {
+          return 1;
+        }
+      });
+
+      if (selectedItem) {
+        open(await polarion.getUrlFromWorkItem(selectedItem.name));
       }
     }
   }
 }
 
 async function getWorkItemText(workItem: string): Promise<string> {
-  //Add to the dictionairy if not available
   var workItemText = 'Not found in polarion';
   await polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
     if (title !== undefined) {

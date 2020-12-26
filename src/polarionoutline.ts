@@ -55,16 +55,9 @@ class WorkItemOutline extends vscode.TreeItem {
     public readonly label: string,
     public readonly range: vscode.Range,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly command?: vscode.Command
   ) {
     super(label, collapsibleState);
-    let t: vscode.Command = { title: '', command: 'revealLine', arguments: [{ lineNumber: range.start.line, at: 'top' }] };
-    this.command = t;
+    this.command = { title: '', command: 'revealLine', arguments: [{ lineNumber: range.start.line, at: 'top' }] };
     this.range = range;
   }
-
-  // iconPath = {
-  //   light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-  //   dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-  // };
 }
