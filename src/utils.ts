@@ -103,3 +103,14 @@ export function getDecorateColor() {
   }
   return selectedColor;
 }
+
+export async function getWorkItemText(workItem: string): Promise<string> {
+  var workItemText = 'Not found in polarion';
+  await pol.polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
+    if (title !== undefined) {
+      workItemText = workItem + ': ' + title;
+    }
+  });
+
+  return workItemText;
+}
