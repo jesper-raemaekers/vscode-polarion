@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import * as pol from './polarion';
+import { PolarionOutlinesProvider } from './polarionoutline';
+import { PolarionStatus } from './status';
+import * as editor from './editor';
 
 export function mapItemsInDocument(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
   let result: Map<string, vscode.Range[]> = new Map<string, vscode.Range[]>();
@@ -113,4 +116,13 @@ export async function getWorkItemText(workItem: string): Promise<string> {
   });
 
   return workItemText;
+}
+
+export async function documentChanged(textEditor: vscode.TextEditor | undefined, outlineProvider: PolarionOutlinesProvider, statusBar: PolarionStatus) {
+  if (textEditor) {
+    outlineProvider.refresh();
+    statusBar.startUpdate(pol.polarion);
+    await editor.decorate(textEditor);
+    statusBar.endUpdate();
+  }
 }

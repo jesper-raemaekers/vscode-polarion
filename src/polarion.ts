@@ -203,6 +203,7 @@ export class Polarion {
 
   clearCache() {
     this.itemCache.clear();
+    vscode.window.showInformationMessage('Cleared polarion work item cache');
   }
 
 }
