@@ -1,6 +1,8 @@
 import * as soap from "soap";
 import * as vscode from 'vscode';
 
+export let polarion: Polarion;
+
 export class Polarion {
   // soap clients
   soapClient: soap.Client;
@@ -208,4 +210,17 @@ export class Polarion {
 enum LogLevel {
   info,
   error
+}
+
+export async function createPolarion(outputChannel: vscode.OutputChannel,) {
+  let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
+  let polarionProject: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Project');
+  let polarionUsername: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Username');
+  let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
+
+  if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
+    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
+    await polarion.initialize();
+
+  }
 }

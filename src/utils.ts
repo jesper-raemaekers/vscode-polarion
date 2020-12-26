@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as pol from './polarion';
 
 export function mapItemsInDocument(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
   let result: Map<string, vscode.Range[]> = new Map<string, vscode.Range[]>();
@@ -102,4 +103,3 @@ export function getDecorateColor() {
   }
   return selectedColor;
 }
-

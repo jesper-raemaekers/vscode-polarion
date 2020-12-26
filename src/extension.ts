@@ -1,14 +1,15 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { Polarion } from "./polarion";
+// import { Polarion } from "./polarion";
+import * as pol from './polarion';
 import { PolarionStatus } from "./status";
 import { PolarionOutlinesProvider } from './polarionoutline';
 import * as utils from './utils';
 
 const open = require('open');
 
-let polarion: Polarion;
+
 
 let polarionStatus: PolarionStatus;
 let outputChannel: vscode.OutputChannel;
@@ -30,15 +31,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   polarionStatus = new PolarionStatus(polarionStatusBar);
 
-  polarionStatus.update(polarion);
+  polarionStatus.update(pol.polarion);
 
   utils.checkSettings();
 
-  initializePolarion();
+  pol.createPolarion(outputChannel).finally(() => { polarionStatus.update(pol.polarion); });
 
   let disposable = vscode.commands.registerCommand('vscode-polarion.clearCache', () => {
-    if (polarion) {
-      polarion.clearCache();
+    if (pol.polarion) {
+      pol.polarion.clearCache();
     }
     vscode.window.showInformationMessage('Cleared polarion work item cache');
   });
@@ -74,7 +75,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (configChange) {
       utils.checkSettings();
 
-      initializePolarion();
+      pol.createPolarion(outputChannel).finally(() => { polarionStatus.update(pol.polarion); });
     }
   });
 
@@ -86,23 +87,11 @@ export async function activate(context: vscode.ExtensionContext) {
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
-async function initializePolarion() {
-  let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
-  let polarionProject: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Project');
-  let polarionUsername: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Username');
-  let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
-
-  if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
-    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
-    await polarion.initialize().finally(() => { polarionStatus.update(polarion); });
-
-  }
-}
 
 const decorationType = vscode.window.createTextEditorDecorationType({});
 
 async function decorate(editor: vscode.TextEditor) {
-  polarionStatus.startUpdate(polarion);
+  polarionStatus.startUpdate(pol.polarion);
   let decorationColor = utils.getDecorateColor();
   let enableHover: boolean | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Hover');
   let decorationsArray: vscode.DecorationOptions[] = [];
@@ -136,8 +125,8 @@ async function decorate(editor: vscode.TextEditor) {
 }
 
 async function buildHoverMarkdown(workItem: string): Promise<string[]> {
-  let item = await polarion.getWorkItem(workItem);
-  let url = await polarion.getUrlFromWorkItem(workItem);
+  let item = await pol.polarion.getWorkItem(workItem);
+  let url = await pol.polarion.getUrlFromWorkItem(workItem);
   let hover: string[] = [];
   if (item !== undefined) {
     hover.push(`${workItem} (${item.type.id}) ***${item.title}***  \nAuthor: ${item.author.id}  \n Status: ${item.status.id}`);
@@ -168,7 +157,7 @@ async function handleOpenPolarion() {
       });
 
       if (selectedItem) {
-        open(await polarion.getUrlFromWorkItem(selectedItem.name));
+        open(await pol.polarion.getUrlFromWorkItem(selectedItem.name));
       }
     }
   }
@@ -176,7 +165,7 @@ async function handleOpenPolarion() {
 
 async function getWorkItemText(workItem: string): Promise<string> {
   var workItemText = 'Not found in polarion';
-  await polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
+  await pol.polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
     if (title !== undefined) {
       workItemText = workItem + ': ' + title;
     }
