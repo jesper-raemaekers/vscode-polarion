@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { Polarion } from "./polarion";
 import { PolarionStatus } from "./status";
 import { PolarionOutlinesProvider } from './polarionoutline';
-import { listItemsInDocument, mapItemsInDocument } from './utils';
+import * as utils from './utils';
 
 const open = require('open');
 
@@ -32,7 +32,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   polarionStatus.update(polarion);
 
-  checkSettings();
+  utils.checkSettings();
 
   initializePolarion();
 
@@ -72,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext) {
     let configChange = event.affectsConfiguration('Polarion');
 
     if (configChange) {
-      checkSettings();
+      utils.checkSettings();
 
       initializePolarion();
     }
@@ -103,11 +103,11 @@ const decorationType = vscode.window.createTextEditorDecorationType({});
 
 async function decorate(editor: vscode.TextEditor) {
   polarionStatus.startUpdate(polarion);
-  let decorationColor = getDecorateColor();
+  let decorationColor = utils.getDecorateColor();
   let enableHover: boolean | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Hover');
   let decorationsArray: vscode.DecorationOptions[] = [];
 
-  let items = mapItemsInDocument(editor);
+  let items = utils.mapItemsInDocument(editor);
 
   for (const item of items) {
     var title = await getWorkItemText(item[0]);
@@ -159,7 +159,7 @@ async function handleOpenPolarion() {
       // the Position object gives you the line and character where the cursor is
       const position = editor.selection.active;
 
-      let items = listItemsInDocument(editor);
+      let items = utils.listItemsInDocument(editor);
 
       let selectedItem = items.find((value) => {
         if (value.range.contains(position)) {
@@ -185,45 +185,5 @@ async function getWorkItemText(workItem: string): Promise<string> {
   return workItemText;
 }
 
-function getDecorateColor() {
-  let settingsColor: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Color');
-  let selectedColor: string = '#777777';
 
-  if (settingsColor) {
-    var match = settingsColor.match(/^#[0-9A-F]{6}$/);
-    if (match !== null) {
-      selectedColor = settingsColor;
-    }
-  }
-  return selectedColor;
-}
-
-
-
-function checkSettings() {
-  // let missingConfiguration: string = ''
-  let missingConfiguration: Array<String> = new Array<String>();
-
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Url') === "") {
-    missingConfiguration.push('Url');
-  }
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Username') === "") {
-    missingConfiguration.push('Username');
-  }
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Password') === "") {
-    missingConfiguration.push('Password');
-  }
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Project') === "") {
-    missingConfiguration.push('Project');
-  }
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Prefix') === "") {
-    missingConfiguration.push('Prefix');
-  }
-
-  if (missingConfiguration.length > 0) {
-    var message = 'The following Polarion settings are not set: ';
-    message = message.concat(missingConfiguration.join(', '));
-    vscode.window.showWarningMessage(message);
-  }
-}
 

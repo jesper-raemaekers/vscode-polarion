@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { listItemsInDocument } from './utils';
+import * as utils from './utils';
 
 export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkItemOutline> {
 
@@ -39,7 +39,7 @@ export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkIte
 
   private findWorkItemsInEditor(editor: vscode.TextEditor): WorkItemOutline[] {
     let list: WorkItemOutline[] = [];
-    let items = listItemsInDocument(editor);
+    let items = utils.listItemsInDocument(editor);
 
     items.forEach((obj, index) => {
       list.push(new WorkItemOutline(obj.name, obj.range, vscode.TreeItemCollapsibleState.None));

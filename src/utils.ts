@@ -62,3 +62,44 @@ export function listItemsInDocument(editor: vscode.TextEditor): any[] {
   }
   return result;
 }
+
+export function checkSettings() {
+  // let missingConfiguration: string = ''
+  let missingConfiguration: Array<String> = new Array<String>();
+
+  if (vscode.workspace.getConfiguration('Polarion', null).get('Url') === "") {
+    missingConfiguration.push('Url');
+  }
+  if (vscode.workspace.getConfiguration('Polarion', null).get('Username') === "") {
+    missingConfiguration.push('Username');
+  }
+  if (vscode.workspace.getConfiguration('Polarion', null).get('Password') === "") {
+    missingConfiguration.push('Password');
+  }
+  if (vscode.workspace.getConfiguration('Polarion', null).get('Project') === "") {
+    missingConfiguration.push('Project');
+  }
+  if (vscode.workspace.getConfiguration('Polarion', null).get('Prefix') === "") {
+    missingConfiguration.push('Prefix');
+  }
+
+  if (missingConfiguration.length > 0) {
+    var message = 'The following Polarion settings are not set: ';
+    message = message.concat(missingConfiguration.join(', '));
+    vscode.window.showWarningMessage(message);
+  }
+}
+
+export function getDecorateColor() {
+  let settingsColor: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Color');
+  let selectedColor: string = '#777777';
+
+  if (settingsColor) {
+    var match = settingsColor.match(/^#[0-9A-F]{6}$/);
+    if (match !== null) {
+      selectedColor = settingsColor;
+    }
+  }
+  return selectedColor;
+}
+
