@@ -18,6 +18,10 @@ Right click on a work item name will enable the 'Open item in Polarion' option i
 
 ![Context menu](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/context_menu.jpg?raw=true)
 
+Use the outline to quickly navigate to work items in the currently opened document.
+
+![Context menu](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/outline.jpg?raw=true)
+
 Look for the messages that pop-up:
 
 ![Logged in](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/success.jpg?raw=true)
@@ -58,11 +62,15 @@ This extension contributes the following settings:
 
 Password is stored in plain text in settings.
 
-Only the first workitem is handled:
+Only the first work item is handled:
 
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/limitation1.jpg?raw=true)
 
 ## Release Notes
+
+### 0.1.8
+
+Added outline view.
 
 ### 0.1.7
 
