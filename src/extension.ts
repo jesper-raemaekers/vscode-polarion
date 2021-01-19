@@ -26,6 +26,12 @@ export async function activate(context: vscode.ExtensionContext) {
   // commands
   vscode.commands.registerCommand('vscode-polarion.clearCache', () => pol?.polarion.clearCache());
   vscode.commands.registerCommand('vscode-polarion.openPolarion', () => editor.handleOpenPolarion());
+  vscode.commands.registerCommand('vscode-polarion.getWorkItemTitle', (workItem: string) => {
+    if (pol?.polarion.initialized === true) {
+      return pol.polarion.getTitleFromWorkItem(workItem);
+    }
+    return undefined;
+  });
 
   //outline provider 
   let outlineProvider = new PolarionOutlinesProvider(vscode.workspace.workspaceFolders);

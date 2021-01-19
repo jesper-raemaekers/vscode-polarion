@@ -68,6 +68,10 @@ Only the first work item is handled:
 
 ## Release Notes
 
+### 0.2.0
+
+Initial test command added for getting the work item title
+
 ### 0.1.8
 
 Added outline view.

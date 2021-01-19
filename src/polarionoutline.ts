@@ -19,7 +19,6 @@ export class PolarionOutlinesProvider implements vscode.TreeDataProvider<WorkIte
 
   getChildren(element?: WorkItemOutline): Thenable<WorkItemOutline[]> {
     if (!this.workspaceRoot) {
-      vscode.window.showInformationMessage('No dependency in empty workspace');
       return Promise.resolve([]);
     }
 
