@@ -12,8 +12,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // status bar
   let polarionStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  polarionStatusBar.tooltip = "Clear to clear cached work items";
-  polarionStatusBar.command = "vscode-polarion.clearCache";
+  polarionStatusBar.tooltip = "Restart polarion";
+  polarionStatusBar.command = "vscode-polarion.restart";
 
   let polarionStatus = new PolarionStatus(polarionStatusBar);
   polarionStatus.update(pol.polarion);
@@ -26,6 +26,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // commands
   vscode.commands.registerCommand('vscode-polarion.clearCache', () => pol?.polarion.clearCache());
   vscode.commands.registerCommand('vscode-polarion.openPolarion', () => editor.handleOpenPolarion());
+  vscode.commands.registerCommand('vscode-polarion.restart', () => { pol.createPolarion(outputChannel).finally(() => { polarionStatus.update(pol.polarion); }); });
   vscode.commands.registerCommand('vscode-polarion.getWorkItemTitle', (workItem: string) => {
     if (pol?.polarion.initialized === true) {
       return pol.polarion.getTitleFromWorkItem(workItem);

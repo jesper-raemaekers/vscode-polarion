@@ -108,7 +108,7 @@ export function getDecorateColor() {
 }
 
 export async function getWorkItemText(workItem: string): Promise<string> {
-  var workItemText = 'Not found in polarion';
+  var workItemText = '';
   await pol.polarion.getTitleFromWorkItem(workItem).then((title: string | undefined) => {
     if (title !== undefined) {
       workItemText = workItem + ': ' + title;

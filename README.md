@@ -68,6 +68,10 @@ Only the first work item is handled:
 
 ## Release Notes
 
+### 0.2.1
+
+Added time to workitem so they are retrieved again after a period of time. This helps when updating tickets or after a disconenction from polarion.
+
 ### 0.2.0
 
 Initial test command added for getting the work item title

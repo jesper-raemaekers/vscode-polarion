@@ -26,7 +26,7 @@ export class Polarion {
   outputChannel: vscode.OutputChannel;
 
   //cache
-  itemCache: Map<string, any>;
+  itemCache: Map<string, { workitem: any, time: Date }>;
 
 
   constructor(url: string, projectName: string, username: string, password: string, outputChannel: vscode.OutputChannel) {
@@ -39,7 +39,7 @@ export class Polarion {
     this.numberOfPopupsToShow = 2;
     this.lastMessage = undefined;
     this.outputChannel = outputChannel;
-    this.itemCache = new Map<string, any>();
+    this.itemCache = new Map<string, { workitem: any, time: Date }>();
 
     this.report(`Polarion service started`, LogLevel.info);
     this.report(`With url: ${this.polarionUrl}`, LogLevel.info);
@@ -120,21 +120,39 @@ export class Polarion {
 
   async getWorkItem(workItem: string): Promise<any | undefined> {
     //Add to the dictionairy if not available
-    if (!this.itemCache.has(workItem)) {
-      if (this.initialized) {
-        await this.getWorkItemFromPolarion(workItem).then((item: any | undefined) => {
-          // Also add undefined workItems to avoid looking them up more than once
-          this.itemCache.set(workItem, item);
-        });
+
+    let fetchItem = false;
+
+    if (this.initialized) {
+      if (!this.itemCache.has(workItem)) {
+        fetchItem = true;
+      }
+      if (this.itemCache.has(workItem)) {
+        let item = this.itemCache.get(workItem);
+        if (item) {
+          let current = new Date();
+          let d = Math.abs(current.valueOf() - item.time.valueOf());
+          if (d > (2 * 60 * 1000)) {
+            fetchItem = true;
+          }
+        }
       }
     }
+
+    if (fetchItem) {
+      await this.getWorkItemFromPolarion(workItem).then((item: any | undefined) => {
+        // Also add undefined workItems to avoid looking them up more than once
+        this.itemCache.set(workItem, { workitem: item, time: new Date() });
+      });
+    }
+
 
     //lookup in dictrionairy
     var item = undefined;
     if (this.itemCache.has(workItem)) {
       item = this.itemCache.get(workItem);
     }
-    return item;
+    return item?.workitem;
   }
 
 
