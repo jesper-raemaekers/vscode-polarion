@@ -56,6 +56,7 @@ This extension contributes the following settings:
 * `Polarion.Prefix`: The ticket prefix without the -
 * `Polarion.Color`: The color for the texts that are added
 * `Polarion.Hover`: Enables the hover menu
+* `Polarion.RefreshTime`: Time after which an item in cache is refreshed
 
 
 ## Known Issues

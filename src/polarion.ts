@@ -131,9 +131,12 @@ export class Polarion {
         let item = this.itemCache.get(workItem);
         if (item) {
           let current = new Date();
-          let d = Math.abs(current.valueOf() - item.time.valueOf());
-          if (d > (2 * 60 * 1000)) {
-            fetchItem = true;
+          let delta = Math.abs(current.valueOf() - item.time.valueOf());
+          let minutes: number | undefined = vscode.workspace.getConfiguration('Polarion', null).get('RefreshTime');
+          if (minutes) {
+            if (delta > (minutes * 60 * 1000)) {
+              fetchItem = true;
+            }
           }
         }
       }

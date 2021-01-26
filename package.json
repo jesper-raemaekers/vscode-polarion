@@ -71,6 +71,11 @@
           "default": "#777777",
           "description": "Color for Polarion inserts in files"
         },
+        "Polarion.RefreshTime": {
+          "type": "number",
+          "default": "5",
+          "description": "Work item cache time. After this time (in minutes) the item is requested from Polarion again."
+        },
         "Polarion.Hover": {
           "type": "boolean",
           "default": true,
