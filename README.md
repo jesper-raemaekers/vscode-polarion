@@ -30,7 +30,7 @@ Look for the messages that pop-up:
 
 ![Error](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/error.jpg?raw=true)
 
-General information is always available in the status bar:
+General information is always available in the status bar. which can be clicked to restart the polarion client.
 
 ![Status logged in](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/bar1.jpg?raw=true)
 ![Status updating document](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/bar2.jpg?raw=true)
@@ -58,6 +58,8 @@ This extension contributes the following settings:
 * `Polarion.Hover`: Enables the hover menu
 * `Polarion.RefreshTime`: Time after which an item in cache is refreshed
 
+The username and password can be saved in a separate file in .vscode with the name polarion.json. IF the file is present and valid, it will override the settings above.
+![polarion config file](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/config.png?raw=true)
 
 ## Known Issues
 
@@ -68,6 +70,10 @@ Only the first work item is handled:
 ![Example](https://github.com/jesper-raemaekers/vscode-polarion/blob/main/images/limitation1.jpg?raw=true)
 
 ## Release Notes
+
+### 0.2.2
+
+Added the refresh time setting and polarion.json configuration file.
 
 ### 0.2.1
 
