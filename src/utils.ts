@@ -3,6 +3,9 @@ import * as pol from './polarion';
 import { PolarionOutlinesProvider } from './polarionoutline';
 import { PolarionStatus } from './status';
 import * as editor from './editor';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as validator from 'jsonschema';
 
 export function mapItemsInDocument(editor: vscode.TextEditor): Map<string, vscode.Range[]> {
   let result: Map<string, vscode.Range[]> = new Map<string, vscode.Range[]>();
@@ -68,23 +71,28 @@ export function listItemsInDocument(editor: vscode.TextEditor): any[] {
 }
 
 export function checkSettings() {
-  // let missingConfiguration: string = ''
   let missingConfiguration: Array<String> = new Array<String>();
 
   if (vscode.workspace.getConfiguration('Polarion', null).get('Url') === "") {
     missingConfiguration.push('Url');
   }
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Username') === "") {
-    missingConfiguration.push('Username');
-  }
-  if (vscode.workspace.getConfiguration('Polarion', null).get('Password') === "") {
-    missingConfiguration.push('Password');
-  }
+
   if (vscode.workspace.getConfiguration('Polarion', null).get('Project') === "") {
     missingConfiguration.push('Project');
   }
   if (vscode.workspace.getConfiguration('Polarion', null).get('Prefix') === "") {
     missingConfiguration.push('Prefix');
+  }
+
+  let fileConfig = getPolarionConfigFromFile();
+  if (!fileConfig) {
+    //Do not check for user and password if a polarion config file is present
+    if (vscode.workspace.getConfiguration('Polarion', null).get('Username') === "") {
+      missingConfiguration.push('Username');
+    }
+    if (vscode.workspace.getConfiguration('Polarion', null).get('Password') === "") {
+      missingConfiguration.push('Password');
+    }
   }
 
   if (missingConfiguration.length > 0) {
@@ -125,4 +133,30 @@ export async function documentChanged(textEditor: vscode.TextEditor | undefined,
     await editor.decorate(textEditor);
     statusBar.endUpdate();
   }
+}
+
+export function getPolarionConfigFromFile(): { username: string, password: string } | undefined {
+  let workspace = vscode.workspace.workspaceFolders;
+  if (workspace) {
+    try {
+      let file = path.join(workspace[0].uri.fsPath, '.vscode', 'polarion.json');
+      // let config = fs.readFileSync(file);
+      let config = fs.readJSONSync(file);
+      let s = require('../schemas/polarionConfig.schema.json');
+      let polarionConfig = validator.validate(config, s);
+      if (polarionConfig.valid) {
+        return config;
+      }
+      return undefined;
+    } catch (e) {
+      console.log(`polarion.json could not be read`);
+      return undefined;
+    }
+  }
+
+
+
+
+
+
 }

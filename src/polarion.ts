@@ -1,5 +1,6 @@
 import * as soap from "soap";
 import * as vscode from 'vscode';
+import * as utils from './utils';
 
 export let polarion: Polarion;
 
@@ -234,11 +235,19 @@ enum LogLevel {
   error
 }
 
-export async function createPolarion(outputChannel: vscode.OutputChannel,) {
+export async function createPolarion(outputChannel: vscode.OutputChannel) {
+
   let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
   let polarionProject: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Project');
   let polarionUsername: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Username');
   let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
+
+  let fileConfig = utils.getPolarionConfigFromFile();
+  if (fileConfig) {
+    // we have a config file, overrule the username and password
+    polarionUsername = fileConfig.username;
+    polarionPassword = fileConfig.password;
+  }
 
   if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
     polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
