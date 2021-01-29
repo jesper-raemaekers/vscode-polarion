@@ -76,6 +76,11 @@
           "default": "5",
           "description": "Work item cache time. After this time (in minutes) the item is requested from Polarion again."
         },
+        "Polarion.ExceptionRestart": {
+          "type": "number",
+          "default": "3",
+          "description": "Automatically restart extension after x number of exceptions from polarion. Value 0 disables this feature."
+        },
         "Polarion.Hover": {
           "type": "boolean",
           "default": true,

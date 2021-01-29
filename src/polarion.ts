@@ -1,6 +1,7 @@
 import * as soap from "soap";
 import * as vscode from 'vscode';
 import * as utils from './utils';
+import * as editor from './editor';
 
 export let polarion: Polarion;
 
@@ -29,6 +30,9 @@ export class Polarion {
   //cache
   itemCache: Map<string, { workitem: any, time: Date }>;
 
+  //exception handling
+  exceptionCount: number;
+
 
   constructor(url: string, projectName: string, username: string, password: string, outputChannel: vscode.OutputChannel) {
     this.soapUser = username;
@@ -41,6 +45,7 @@ export class Polarion {
     this.lastMessage = undefined;
     this.outputChannel = outputChannel;
     this.itemCache = new Map<string, { workitem: any, time: Date }>();
+    this.exceptionCount = 0;
 
     this.report(`Polarion service started`, LogLevel.info);
     this.report(`With url: ${this.polarionUrl}`, LogLevel.info);
@@ -66,7 +71,6 @@ export class Polarion {
 
     await this.getSession();
   }
-
   private async getSession(): Promise<boolean> {
     let loginSucces = false;
     let isCurrentSessionValid = await this.sessionValid();
@@ -185,6 +189,17 @@ export class Polarion {
       }
         , (reason: string) => {
           this.report(`getWorkItem: Could not find ${itemId} with exception: ${reason}`, LogLevel.error);
+          //restart instance because getting exceptions is not normal
+          // this is possibly a workaround for some login problem?
+          let exceptionLimit: number | undefined = vscode.workspace.getConfiguration('Polarion', null).get('ExceptionRestart');
+          if (exceptionLimit) {
+            if (this.exceptionCount > exceptionLimit && exceptionLimit > 0) {
+              this.report(`getWorkItem: Restarting Polarion after ${this.exceptionCount} exceptions`, LogLevel.error);
+              createPolarion(this.outputChannel);
+            } else {
+              this.exceptionCount++;
+            }
+          }
         });
 
     return workItem;
@@ -250,8 +265,12 @@ export async function createPolarion(outputChannel: vscode.OutputChannel) {
   }
 
   if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
-    polarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
-    await polarion.initialize();
-
+    let newPolarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
+    polarion = newPolarion;
+    await polarion.initialize().then(() => {
+      const openEditor = vscode.window.visibleTextEditors.forEach(e => {
+        editor.decorate(e);
+      });
+    });
   }
 }
