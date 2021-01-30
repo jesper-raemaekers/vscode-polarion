@@ -140,7 +140,10 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "clean-html": "^1.5.0",
     "fs-extra": "^9.1.0",
+    "html-to-md": "^0.3.8",
+    "html2json": "^1.0.2",
     "jsonschema": "^1.4.0",
     "open": "^7.3.0",
     "soap": "^0.35.0"
