@@ -13,7 +13,7 @@ export class Polarion {
   //polarion config
   soapUser: string;
   soapPassword: string;
-  polarionProject: string;
+  polarionProject: string | undefined;
   polarionUrl: string;
 
   //initialized boolean
@@ -34,7 +34,7 @@ export class Polarion {
   exceptionCount: number;
 
 
-  constructor(url: string, projectName: string, username: string, password: string, outputChannel: vscode.OutputChannel) {
+  constructor(url: string, username: string, password: string, outputChannel: vscode.OutputChannel, projectName: string | undefined = undefined) {
     this.soapUser = username;
     this.soapPassword = password;
     this.polarionProject = projectName;
@@ -155,7 +155,7 @@ export class Polarion {
     }
 
 
-    //lookup in dictrionairy
+    //lookup in dictionairy
     var item = undefined;
     if (this.itemCache.has(workItem)) {
       item = this.itemCache.get(workItem);
@@ -166,16 +166,50 @@ export class Polarion {
 
 
   private async getWorkItemFromPolarion(itemId: string): Promise<any | undefined> {
-    // don't bother requesting if not initialized
     if (this.initialized === false) {
       return undefined;
     }
-
-    let workItem: any = undefined;
     this.soapTracker.addSoapHeader('<ns1:sessionID xmlns:ns1="http://ws.polarion.com/session" soap:actor="http://schemas.xmlsoap.org/soap/actor/next" soap:mustUnderstand="0">' + this.sessionID.$value + '</ns1:sessionID>');
-
     await this.getSession();
+    if (this.polarionProject) {
+      return this.getProjectWorkItem(itemId, this.polarionProject);
+    }
+    return this.getWorkItemGlobally(itemId);
+  }
 
+  private async getWorkItemGlobally(itemId: string): Promise<any | undefined> {
+    var workItem: any = undefined;
+    var uri = undefined;
+    const query = `id:${itemId}`;
+    await this.soapTracker.queryWorkItemsAsync({ query: query, sort: "id", fields: ["id"] }, null, this.sessionID)
+      .then((result: any) => {
+        if (result.length === 0) {
+          this.report(`getWorkItem: Could not find workitem ${itemId}`, LogLevel.info);
+          return;
+        }
+        let r = result[0].queryWorkItemsReturn[0];
+        if (r.attributes.unresolvable === 'false') {
+          this.report(`getWorkItem: Found workitem ${itemId} ${r.title}`, LogLevel.info);
+          uri = r.attributes.uri;
+        }
+        else {
+          this.report(`getWorkItem: Could not find workitem ${itemId}`, LogLevel.info);
+        }
+      }
+        , (reason: string) => {
+          this.handlePromiseRejection(reason, itemId);
+        });
+    await this.soapTracker.getWorkItemByUriAsync({ uri: uri }, null, this.sessionID).then((result: any) => {
+      workItem = result[0].getWorkItemByUriReturn;
+    }
+      , (reason: string) => {
+        this.report(`getWorkItem: Could not get workitem ${itemId} with exception: ${reason}`, LogLevel.error);
+      });
+    return workItem;
+  }
+
+  private async getProjectWorkItem(itemId: string, projectId: string): Promise<any | undefined> {
+    let workItem: any = undefined;
     await this.soapTracker.getWorkItemByIdAsync({ projectId: this.polarionProject, workitemId: itemId }, null, this.sessionID)
       .then((result: any) => {
         let r = result[0].getWorkItemByIdReturn;
@@ -188,22 +222,27 @@ export class Polarion {
         }
       }
         , (reason: string) => {
-          this.report(`getWorkItem: Could not find ${itemId} with exception: ${reason}`, LogLevel.error);
-          //restart instance because getting exceptions is not normal
-          // this is possibly a workaround for some login problem?
-          let exceptionLimit: number | undefined = vscode.workspace.getConfiguration('Polarion', null).get('ExceptionRestart');
-          if (exceptionLimit) {
-            if (this.exceptionCount > exceptionLimit && exceptionLimit > 0) {
-              this.report(`getWorkItem: Restarting Polarion after ${this.exceptionCount} exceptions`, LogLevel.error);
-              createPolarion(this.outputChannel);
-            } else {
-              this.exceptionCount++;
-            }
-          }
+          this.handlePromiseRejection(reason, itemId);
         });
-
     return workItem;
   }
+
+  private handlePromiseRejection(reason: any, itemId: string) {
+    this.report(`getWorkItem: Could not find ${itemId} with exception: ${reason}`, LogLevel.error);
+    //restart instance because getting exceptions is not normal
+    // this is possibly a workaround for some login problem?
+    let exceptionLimit: number | undefined = vscode.workspace.getConfiguration('Polarion', null).get('ExceptionRestart');
+    if (exceptionLimit) {
+      if (this.exceptionCount > exceptionLimit && exceptionLimit > 0) {
+        this.report(`getWorkItem: Restarting Polarion after ${this.exceptionCount} exceptions`, LogLevel.error);
+        createPolarion(this.outputChannel);
+      } else {
+        this.exceptionCount++;
+      }
+    }
+  }
+
+
 
   async getTitleFromWorkItem(itemId: string): Promise<string | undefined> {
     let workItem = await this.getWorkItem(itemId);
@@ -216,9 +255,9 @@ export class Polarion {
     }
   }
 
-  async getUrlFromWorkItem(itemId: string): Promise<string | undefined> {
-    // for now just construct the URL
-    return this.polarionUrl.concat('/#/project/', this.polarionProject, '/workitem?id=', itemId);
+  getUrlFromWorkItem(itemId: string): string | undefined {
+    let project = this.polarionProject ?? this.itemCache.get(itemId)?.workitem.project.id;
+    return project ? this.polarionUrl.concat(`/polarion/#/project/${project}/workitem?id=${itemId}`) : undefined;
   }
 
   private report(msg: string, level: LogLevel, popup: boolean = false) {
@@ -251,6 +290,7 @@ enum LogLevel {
 }
 
 export async function createPolarion(outputChannel: vscode.OutputChannel) {
+  console.log('createPolarion');
 
   let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
   let polarionProject: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Project');
@@ -263,9 +303,8 @@ export async function createPolarion(outputChannel: vscode.OutputChannel) {
     polarionUsername = fileConfig.username;
     polarionPassword = fileConfig.password;
   }
-
-  if (polarionUrl && polarionProject && polarionUsername && polarionPassword) {
-    let newPolarion = new Polarion(polarionUrl, polarionProject, polarionUsername, polarionPassword, outputChannel);
+  if (polarionUrl && polarionUsername && polarionPassword) {
+    let newPolarion = new Polarion(polarionUrl, polarionUsername, polarionPassword, outputChannel, polarionProject);
     polarion = newPolarion;
     await polarion.initialize().then(() => {
       const openEditor = vscode.window.visibleTextEditors.forEach(e => {

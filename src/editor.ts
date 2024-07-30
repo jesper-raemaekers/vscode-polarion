@@ -51,7 +51,7 @@ export async function buildHoverMarkdown(workItem: string): Promise<string[]> {
 
       hover.push(await getMkDiscription(item.description?.content));
     }
-    hover.push(`[Open in Polarion](${url})`);
+    url ?? hover.push(`[Open in Polarion](${url})`);
   }
   else {
     hover.push(`Not found`);
@@ -142,8 +142,8 @@ export async function handleOpenPolarion() {
         }
       });
 
-      if (selectedItem) {
-        open(await pol.polarion.getUrlFromWorkItem(selectedItem.name));
+      if (selectedItem && pol.polarion.getUrlFromWorkItem(selectedItem.name)) {
+        open(pol.polarion.getUrlFromWorkItem(selectedItem.name));
       }
     }
   }
