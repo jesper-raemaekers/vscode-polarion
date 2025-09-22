@@ -1,14 +1,14 @@
 {
-  "name": "vscode-polarion",
-  "displayName": "Polarion",
-  "description": "Polarion integration in Visual Studio Code",
-  "publisher": "JesperRaemaekers",
+  "name": "vscode-polarion-rest",
+  "displayName": "Polarion REST",
+  "description": "Polarion integration for Visual Studio Code - Fork using the REST API",
+  "publisher": "Feo Elektronik GmbH",
   "repository": {
-    "url": "https://github.com/jesper-raemaekers/vscode-polarion"
+    "url": "https://github.com/Feo-Elektronik-GmbH/vscode-polarion-rest"
   },
   "license": "GPL-3.0-or-later",
   "icon": "logo/logo.png",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.52.0"
   },
@@ -49,7 +49,7 @@
         "Polarion.Url": {
           "type": "string",
           "default": "",
-          "description": "URL for polarion (For example: http://polarion.example.com/polarion)"
+          "description": "URL for polarion (For example: https://polarion.example.com/polarion)"
         },
         "Polarion.UseTokenAuth": {
           "type": "boolean",
