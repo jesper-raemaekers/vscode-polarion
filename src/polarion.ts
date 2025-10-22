@@ -137,10 +137,7 @@ export class Polarion {
   httpClient: AxiosInstance;
 
   //polarion config
-  polarionUser: string;
-  polarionPassword: string;
   polarionUrl: string;
-  useTokenAuth: boolean;
   polarionToken: string | null;
 
   //initialized boolean
@@ -154,6 +151,9 @@ export class Polarion {
   lastMessage: string | undefined;
   outputChannel: vscode.OutputChannel;
 
+  //auth manager for secure storage
+  authManager?: any;
+
   //cache
   itemCache: Map<string, { workitem: any, time: Date }>;
   attachmentCache: Map<string, string>; // Cache for attachment base64 data
@@ -165,17 +165,15 @@ export class Polarion {
   //exception handling
   exceptionCount: number;
 
-  constructor(url: string, username: string, password: string, useTokenAuth: boolean, outputChannel: vscode.OutputChannel) {
-    this.polarionUser = username;
-    this.polarionPassword = password;
+  constructor(url: string, outputChannel: vscode.OutputChannel, authManager?: any) {
     this.polarionUrl = url;
-    this.useTokenAuth = useTokenAuth;
     this.polarionToken = null;
     this.initialized = false;
     this.authHeaders = {};
     this.numberOfPopupsToShow = 2;
     this.lastMessage = undefined;
     this.outputChannel = outputChannel;
+    this.authManager = authManager;
     this.itemCache = new Map<string, { workitem: any, time: Date }>();
     this.attachmentCache = new Map<string, string>();
     this.statusCache = new Map<string, { statuses: Map<string, { name: string, color: string, iconPath?: string }>, time: Date }>();
@@ -186,11 +184,7 @@ export class Polarion {
 
     this.report(`Polarion service started`, LogLevel.info);
     this.report(`With url: ${this.polarionUrl}`, LogLevel.info);
-    if (this.useTokenAuth) {
-      this.report(`Using token authentication from VS Code settings`, LogLevel.info);
-    } else {
-      this.report(`With user: ${this.polarionUser}`, LogLevel.info);
-    }
+    this.report(`Using token authentication from secure storage`, LogLevel.info);
 
     // Create axios instance for REST API calls
     this.httpClient = axios.create({
@@ -205,10 +199,8 @@ export class Polarion {
 
   async initialize() {
     try {
-      // If using token auth, retrieve the token from VS Code settings
-      if (this.useTokenAuth) {
-        await this.retrieveTokenFromSettings();
-      }
+      // Always use token authentication
+      await this.retrieveTokenFromSettings();
 
       // Setup authentication
       await this.setupAuthentication();
@@ -232,34 +224,31 @@ export class Polarion {
 
   private async retrieveTokenFromSettings(): Promise<void> {
     try {
-      const token: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Token');
-      this.polarionToken = token || null;
-      if (this.polarionToken && this.polarionToken.trim() !== '') {
-        this.report(`Token retrieved successfully from VS Code settings`, LogLevel.info);
-      } else {
-        this.report(`No token found in VS Code settings (Polarion.Token)`, LogLevel.error, true);
+      // Try to get token from secure storage via auth manager
+      if (this.authManager) {
+        const secureToken = await this.authManager.getStoredToken();
+        if (secureToken && secureToken.trim() !== '') {
+          this.polarionToken = secureToken;
+          this.report(`Token retrieved successfully from secure storage`, LogLevel.info);
+          return;
+        }
       }
+
+      this.report(`No token found in secure storage`, LogLevel.error, true);
     } catch (error) {
-      this.report(`Failed to retrieve token from VS Code settings: ${error}`, LogLevel.error, true);
+      this.report(`Failed to retrieve token: ${error}`, LogLevel.error, true);
     }
   }
 
   private async setupAuthentication(): Promise<void> {
-    if (this.useTokenAuth && this.polarionToken && this.polarionToken.trim() !== '') {
+    if (this.polarionToken && this.polarionToken.trim() !== '') {
       // Token-based authentication using Bearer token
       this.authHeaders = {
         'Authorization': `Bearer ${this.polarionToken}`
       };
       this.report(`Using token authentication`, LogLevel.info);
-    } else if (!this.useTokenAuth && this.polarionUser && this.polarionPassword) {
-      // Basic authentication
-      const credentials = Buffer.from(`${this.polarionUser}:${this.polarionPassword}`).toString('base64');
-      this.authHeaders = {
-        'Authorization': `Basic ${credentials}`
-      };
-      this.report(`Using basic authentication`, LogLevel.info);
     } else {
-      throw new Error('No valid authentication method configured');
+      throw new Error('No valid token configured');
     }
 
     // Set default headers for all requests
@@ -873,40 +862,17 @@ enum LogLevel {
   error
 }
 
-export async function createPolarion(outputChannel: vscode.OutputChannel) {
+export async function createPolarion(outputChannel: vscode.OutputChannel, authManager?: any) {
   let polarionUrl: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Url');
-  let useTokenAuth: boolean | undefined = vscode.workspace.getConfiguration('Polarion', null).get('UseTokenAuth');
-  let polarionUsername: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Username');
-  let polarionPassword: string | undefined = vscode.workspace.getConfiguration('Polarion', null).get('Password');
-
-  // Default to token auth if not specified
-  if (useTokenAuth === undefined) {
-    useTokenAuth = true;
-  }
-
-  let fileConfig = utils.getPolarionConfigFromFile();
-  if (fileConfig) {
-    // we have a config file, override the username and password
-    polarionUsername = fileConfig.username;
-    polarionPassword = fileConfig.password;
-    if (fileConfig.useTokenAuth !== undefined) {
-      useTokenAuth = fileConfig.useTokenAuth;
-    }
-  }
 
   if (polarionUrl) {
-    // For token auth, we don't need username/password to be configured
-    if (useTokenAuth || (polarionUsername && polarionPassword)) {
-      let newPolarion = new Polarion(polarionUrl, polarionUsername || '', polarionPassword || '', useTokenAuth, outputChannel);
-      polarion = newPolarion;
-      await polarion.initialize().then(() => {
-        const openEditor = vscode.window.visibleTextEditors.forEach(e => {
-          editor.decorate(e);
-        });
+    let newPolarion = new Polarion(polarionUrl, outputChannel, authManager);
+    polarion = newPolarion;
+    await polarion.initialize().then(() => {
+      const openEditor = vscode.window.visibleTextEditors.forEach(e => {
+        editor.decorate(e);
       });
-    } else {
-      outputChannel.appendLine('Error: Username and password must be configured when token authentication is disabled');
-    }
+    });
   } else {
     outputChannel.appendLine('Error: URL must be configured');
   }

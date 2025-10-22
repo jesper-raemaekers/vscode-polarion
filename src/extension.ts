@@ -4,11 +4,14 @@ import { PolarionStatus } from "./status";
 import { PolarionOutlinesProvider } from './polarionoutline';
 import * as utils from './utils';
 import * as editor from './editor';
-
+import { PolarionAuthManager } from './auth';
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Create the authentication manager
+  const authManager = new PolarionAuthManager(context);
+
   // check the current settings
-  utils.checkSettings();
+  await utils.checkSettings(authManager);
 
   // status bar
   let polarionStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -20,7 +23,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // output channel for logging
   let outputChannel = vscode.window.createOutputChannel("Polarion");
-  pol.createPolarion(outputChannel).finally(() => { polarionStatus.update(pol.polarion); });
+  pol.createPolarion(outputChannel, authManager).finally(() => { polarionStatus.update(pol.polarion); });
 
   //outline provider 
   let outlineProvider = new PolarionOutlinesProvider(vscode.workspace.workspaceFolders);
@@ -42,7 +45,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // commands
   vscode.commands.registerCommand('vscode-polarion.clearCache', () => pol?.polarion.clearCache());
   vscode.commands.registerCommand('vscode-polarion.openPolarion', () => editor.handleOpenPolarion());
-  vscode.commands.registerCommand('vscode-polarion.restart', () => { pol.createPolarion(outputChannel).finally(() => { polarionStatus.update(pol.polarion); }); });
+  vscode.commands.registerCommand('vscode-polarion.restart', () => { pol.createPolarion(outputChannel, authManager).finally(() => { polarionStatus.update(pol.polarion); }); });
   vscode.commands.registerCommand('vscode-polarion.getWorkItemTitle', (workItem: string) => {
     if (pol?.polarion.initialized === true) {
       return pol.polarion.getTitleFromWorkItem(workItem);
@@ -71,6 +74,17 @@ export async function activate(context: vscode.ExtensionContext) {
   // New command for opening workitem to the side
   vscode.commands.registerCommand('vscode-polarion.openWorkItemToSide', async (workItem: string) => {
     await editor.handleOpenWorkItemToSide(workItem);
+  });
+
+  // New command for setting up authentication
+  vscode.commands.registerCommand('vscode-polarion.setupAuth', async () => {
+    const result = await authManager.setupAuthentication();
+    if (result) {
+      // Restart Polarion with new authentication
+      await pol.createPolarion(outputChannel, authManager);
+      polarionStatus.update(pol.polarion);
+      vscode.window.showInformationMessage('Authentication setup complete! Polarion connection restarted.');
+    }
   });
 
   // Register the hover provider
@@ -119,14 +133,14 @@ export async function activate(context: vscode.ExtensionContext) {
     let configChange = event.affectsConfiguration('Polarion');
 
     if (configChange) {
-      utils.checkSettings();
+      utils.checkSettings(authManager);
 
       // Update CodeLens provider if the setting changed
       if (event.affectsConfiguration('Polarion.CodeLens')) {
         updateCodeLensProvider();
       }
 
-      pol.createPolarion(outputChannel).finally(() => { polarionStatus.update(pol.polarion); });
+      pol.createPolarion(outputChannel, authManager).finally(() => { polarionStatus.update(pol.polarion); });
     }
   });
 }

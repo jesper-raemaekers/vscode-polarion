@@ -41,6 +41,10 @@
       {
         "command": "vscode-polarion.openWorkItemToSide",
         "title": "Open to the Side"
+      },
+      {
+        "command": "vscode-polarion.setupAuth",
+        "title": "Setup Polarion Authentication"
       }
     ],
     "configuration": {
@@ -50,26 +54,6 @@
           "type": "string",
           "default": "",
           "description": "URL for polarion (For example: https://polarion.example.com/polarion)"
-        },
-        "Polarion.UseTokenAuth": {
-          "type": "boolean",
-          "default": true,
-          "description": "Use token authentication (stored in VS Code settings)"
-        },
-        "Polarion.Token": {
-          "type": "string",
-          "default": "",
-          "description": "Polarion authentication token"
-        },
-        "Polarion.Username": {
-          "type": "string",
-          "default": "",
-          "description": "Username for polarion connection (only used when UseTokenAuth is false)"
-        },
-        "Polarion.Password": {
-          "type": "string",
-          "default": "",
-          "description": "Password for polarion connection (only used when UseTokenAuth is false)"
         },
         "Polarion.Prefix": {
           "type": "string",

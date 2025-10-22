@@ -58,29 +58,23 @@ This extension contributes the following settings:
 * `Polarion.Url`: The polarion url, f.e.: http://polarion2020.example.com/polarion
 * `Polarion.Project`: The polarion project ID
 * `Polarion.Prefix`: The ticket prefix without the -
-* `Polarion.UseTokenAuth`: Use token authentication (default: true)
-* `Polarion.Token`: Polarion authentication token for REST API access
-* `Polarion.Username`: The polarion username to log in (only used when UseTokenAuth is false)
-* `Polarion.Password`: The password for that user (only used when UseTokenAuth is false)
 * `Polarion.Color`: The color for the texts that are added
 * `Polarion.Hover`: Enables the hover menu
 * `Polarion.RefreshTime`: Time after which an item in cache is refreshed
 
 ## Authentication
 
-### Token Authentication (Recommended)
-The extension uses Polarion's REST API with token-based authentication. Store your Polarion access token in the VS Code settings under `Polarion.Token`. 
+### Token Authentication (Secure Storage)
+The extension uses Polarion's REST API with token-based authentication. Your Polarion access token is stored securely using VS Code's secret storage API, ensuring your credentials are protected.
 
 To generate a token in Polarion:
 1. Log into your Polarion instance
 2. Go to your user profile settings
 3. Navigate to the "Access Tokens" section
 4. Generate a new token with appropriate permissions
-5. Copy the token to the `Polarion.Token` setting in VS Code
+5. Use the "Setup Polarion Authentication" command in VS Code to securely store your token
 
-### Username/Password Authentication (Legacy)
-Basic authentication is still supported for backwards compatibility. The username and password can be saved in VS Code settings or in a separate file in .vscode with the name polarion.json. If the file is present and valid, it will override the settings above.
-![polarion config file](https://github.com/yourusername/vscode-polarion-rest/blob/main/images/config.png?raw=true)
+Note: Username/password authentication has been removed for security reasons. Only token-based authentication with secure storage is supported.
 
 ## REST API Implementation
 
@@ -92,7 +86,6 @@ This fork uses Polarion's REST API v1 for:
 
 ## Known Issues
 
-Password and token are stored in plain text in settings.
 
 ## Contributing
 
