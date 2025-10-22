@@ -1,14 +1,14 @@
 {
-  "name": "vscode-polarion",
-  "displayName": "Polarion",
-  "description": "Polarion integration in Visual Studio Code",
-  "publisher": "JesperRaemaekers",
+  "name": "vscode-polarion-rest",
+  "displayName": "Polarion REST",
+  "description": "Polarion integration for Visual Studio Code - Fork using the REST API",
+  "publisher": "Feo Elektronik GmbH",
   "repository": {
-    "url": "https://github.com/jesper-raemaekers/vscode-polarion"
+    "url": "https://github.com/Feo-Elektronik-GmbH/vscode-polarion-rest"
   },
   "license": "GPL-3.0-or-later",
   "icon": "logo/logo.png",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.52.0"
   },
@@ -16,11 +16,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onCommand:vscode-polarion.clearCache",
-    "onCommand:vscode-polarion.openPolarion",
-    "onCommand:vscode-polarion.restart",
-    "onView:polarionOutline"
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -36,6 +32,19 @@
       {
         "command": "vscode-polarion.restart",
         "title": "Restart Polarion client"
+      },
+      {
+        "command": "vscode-polarion.openWorkItemFromOutline",
+        "title": "Open in Polarion",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "vscode-polarion.openWorkItemToSide",
+        "title": "Open to the Side"
+      },
+      {
+        "command": "vscode-polarion.setupAuth",
+        "title": "Setup Polarion Authentication"
       }
     ],
     "configuration": {
@@ -44,27 +53,12 @@
         "Polarion.Url": {
           "type": "string",
           "default": "",
-          "description": "URL for polarion (For example: http://polarion.example.com/polarion)"
-        },
-        "Polarion.Username": {
-          "type": "string",
-          "default": "",
-          "description": "Username for polarion connection"
-        },
-        "Polarion.Password": {
-          "type": "string",
-          "default": "",
-          "description": "Password for polarion connection"
-        },
-        "Polarion.Project": {
-          "type": "string",
-          "default": "",
-          "description": "Name of the polarion project"
+          "description": "URL for polarion (For example: https://polarion.example.com/polarion)"
         },
         "Polarion.Prefix": {
           "type": "string",
-          "default": "",
-          "description": "The prefix of the polarion IDs (for example TEST for TEST-123 tickets)"
+          "default": "[A-Z]{2,}",
+          "description": "Regex pattern for Polarion workitem prefixes (e.g., '[A-Z]{2,}' for patterns like 'ABC-123')"
         },
         "Polarion.Color": {
           "type": "string",
@@ -85,6 +79,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enabled the hover feature allowing to see basic info of a work item"
+        },
+        "Polarion.CodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CodeLens links to open workitems in Polarion"
         }
       }
     },
@@ -93,6 +92,20 @@
         {
           "command": "vscode-polarion.openPolarion",
           "group": "polarion@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vscode-polarion.openWorkItemFromOutline",
+          "when": "view == polarionOutline && viewItem == workitem",
+          "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vscode-polarion.openWorkItemFromOutline",
+          "when": "view == polarionOutline && viewItem == external-link",
+          "group": "inline"
         }
       ]
     },
@@ -127,25 +140,27 @@
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.0",
     "@types/node": "^12.11.7",
+    "@types/request": "^2.48.13",
+    "@types/sanitize-html": "^2.16.0",
+    "@types/sax": "^1.2.7",
     "@types/vscode": "^1.52.0",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
     "eslint": "^7.9.0",
     "glob": "^7.1.6",
-    "mocha": "^8.1.3",
+    "mocha": "^11.7.2",
     "ts-loader": "^8.0.3",
     "typescript": "^4.0.2",
     "vscode-test": "^1.4.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
   },
   "dependencies": {
+    "axios": "^1.6.0",
     "clean-html": "^1.5.0",
     "fs-extra": "^9.1.0",
-    "html-to-md": "^0.3.8",
-    "html2json": "^1.0.2",
     "jsonschema": "^1.4.0",
     "open": "^7.3.0",
-    "soap": "^0.35.0"
+    "sanitize-html": "^2.11.0"
   }
 }

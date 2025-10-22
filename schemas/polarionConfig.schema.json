@@ -10,10 +10,33 @@
             "description": "Password",
             "type": "string",
             "minLength": 1
+        },
+        "token": {
+            "description": "Authentication token",
+            "type": "string",
+            "minLength": 1
+        },
+        "useTokenAuth": {
+            "description": "Whether to use token authentication",
+            "type": "boolean"
         }
     },
-    "required": [
-        "username",
-        "password"
+    "anyOf": [
+        {
+            "required": ["username", "password"],
+            "properties": {
+                "useTokenAuth": {
+                    "const": false
+                }
+            }
+        },
+        {
+            "required": ["token"],
+            "properties": {
+                "useTokenAuth": {
+                    "const": true
+                }
+            }
+        }
     ]
 }
